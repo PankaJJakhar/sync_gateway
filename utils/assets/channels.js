@@ -5,14 +5,18 @@ var coax = require("coax"), sg = coax(location.origin);
 
 window.ChannelsPage = React.createClass({
   render : function() {
-    var db = this.props.db;
+    var content, db = this.props.db;
+    if (this.props.channel) {
+      content = <ChannelInfo db={db} name={this.props.channel}/>
+    } else {
+      content = <RecentChannels db={db} watch={this.props.watch} />
+    }
     return (
       /*jshint ignore:start */
       <div>
-      <a href="/_utils/">home</a>
       <Nav db={db} page="channels"/>
       <h2>Database: {db}</h2>
-      <RecentChannels db={db} watch={this.props.watch} />
+      {content}
       </div>
       /*jshint ignore:end */
     );
@@ -25,7 +29,6 @@ function hrefToggleWatchingChannel(chName, current) {
   var query = urlparts[1]
   if (query) {
     var parts = query.split("=")
-    console.log('x',query, parts)
     var watch = parts.indexOf("watch")
     if (watch !== -1) {
       channels = parts[watch+1].split(',');
@@ -44,13 +47,65 @@ function hrefToggleWatchingChannel(chName, current) {
   }
 }
 
+var ChannelInfo = React.createClass({
+  getInitialState: function() {
+    return {access: [] ,name : "", db : false};
+  },
+  setStateForProps : function(props) {
+    console.log("setStateForProps", props)
+    if (props.db && props.name) {
+      sg.get([props.db, "_view", "access"], function(err, data) {
+        var usersForChannel = [];
+        data.rows.forEach(function(r) {
+          if (r.value[props.name]) {
+            usersForChannel.push(r)
+          }
+        });
+        this.setState({access : usersForChannel, name : props.name, db : props.db})
+      }.bind(this))
+    } else {
+      this.setState(this.getInitialState())
+    }
+  },
+  componentWillReceiveProps: function(newProps) {
+    // console.log("componentWillReceiveProps")
+    this.setStateForProps(newProps)
+  },
+  componentWillMount: function() {
+    // console.log("componentWillMount")
+    this.setStateForProps(this.props)
+  },
+  render : function() {
+    var name = this.state.name;
+    var db = this.state.db;
+    var access = this.state.access && this.state.access.map(function(row){
+      return <li><a href={dbLink(db, "users/"+row.key)}>{row.key}</a>
+        : <a href={dbLink(db, "documents/"+row.id)}>{row.id}</a></li>
+    });
+    console.log(access)
+    /*jshint ignore:start */
+    return (
+      <div>
+        <h2>Channel Info: {name}</h2>
+        <h3>Access Control: Readers</h3>
+        {access && <ul>{access}</ul>}
+        {
+          (db && name) &&
+            <iframe width="75%" height="400px" src={"/"+db+"/_dumpchannel/"+name}></iframe>
+        }
+      </div>
+      )
+    /*jshint ignore:end */
+  }
+})
+
 var ChannelList = React.createClass({
   render : function() {
     var channels = this.props.channels;
     var watched = this.props.watch;
     var currentLoc = location.toString();
     /*jshint ignore:start */
-    return (<ul className="ChannelList">
+    return (<ul className="sidebar">
         {channels.map(function(ch) {
           var watchClass = watched.indexOf(ch) !== -1 ? "watched" : "";
           return <li key={ch} className={watchClass}><a href={hrefToggleWatchingChannel(ch, currentLoc)}>{ch}</a></li>;
@@ -61,48 +116,14 @@ var ChannelList = React.createClass({
   }
 });
 
-var DocsInChannel = React.createClass({
-  render : function() {
-    var ids = this.props.ids, docs = this.props.docs;
-    return (
-      <ul className="DocsInChannel">
-        {ids.map(function(id){
-          return <li key={id}>{docs[id]}{" "}{id}</li>;
-        })}
-      </ul>
-      );
-  }})
-
-var ChannelGridColumn = React.createClass({
-  render : function() {
-    var ch = this.props.channel;
-    var revs ={}, docs = ch.docs;
-    for (var id in docs)
-      revs[docs[id]] = id
-    var rs = Object.keys(revs).sort(function(a, b){
-      return parseInt(a) - parseInt(b);
-    });
-    var docList = [];
-    for (var i = rs.length - 1; i >= 0; i--) {
-      var docid = revs[rs[i]];
-      docList.push(docid)
-    };
-    return (
-      <div className="ChannelGridColumn">
-      <h3>Channel {ch.name}</h3>
-      <DocsInChannel ids={docList} docs={docs}/>
-      </div>
-      );
-}});
-
 var ChannelGridHeaders = React.createClass({
   render : function() {
     var channels = this.props.channels;
-
+    var db = this.props.db;
     return (
     <tr>
       {channels.map(function(ch){
-        return <th>{ch.name}</th>
+        return <th><a href={dbLink(db, "channels/"+ch.name)}>{ch.name}</a></th>
       })}
     </tr>
           );
@@ -122,9 +143,10 @@ var ChannelGrid = React.createClass({
       var rs = Object.keys(revs).sort(function(a, b){
         return parseInt(a) - parseInt(b);
       });
-      for (var i = rs.length - 1; i >= 0; i--) {
+      for (var i = 0; i <= rs.length; i++) {
+      // for (var i = rs.length - 1; i >= 0; i--) {
         var docid = revs[rs[i]];
-        docLists[ch.name].push(docid)
+        docLists[ch.name].push([docid, rs[i]])
       };
     })
     var done = Array.apply(null, new Array(channels.length)).map(function(){return 0  }), rows = [];
@@ -142,15 +164,15 @@ var ChannelGrid = React.createClass({
       };
       rows.push(row);
     }
-
+    var db = this.props.db;
     return (
       <div className="ChannelGrid">
       <table>
-        <ChannelGridHeaders channels={channels}/>
+        <ChannelGridHeaders db={db} channels={channels}/>
         {rows.map(function(row){
           return <tr>
             {row.map(function(id) {
-              return <td>{id}</td>
+              return <ChangeCell id={id[0]} seq={id[1]} db={db}/>
             })}
           </tr>
         })}
@@ -159,6 +181,16 @@ var ChannelGrid = React.createClass({
     )
   }});
 
+
+var ChangeCell = React.createClass({
+  render : function() {
+    if (this.props.seq && this.props.id && this.props.db) {
+      return <td>{this.props.seq} : <a href={dbLink(this.props.db, "documents/"+this.props.id)}>{this.props.id}</a></td>
+    } else {
+      return <td/>
+    }
+  }
+})
 
 window.RecentChannels = React.createClass({
   watchChannels : function() {
@@ -212,24 +244,23 @@ function parseSeq(seq) {
   oldSeq = seqObj;
   return output;
 }
-
+console.log("change opts", opts)
     this.changes = coax([location.origin, this.props.db]).changes(opts, function(err, change) {
       console.log("change", err, change)
       var channels = w.state.channels;
       var seq = parseSeq(change.seq)
       var changed = false
-      // console.log("before change", num, change.id, JSON.stringify(channels))
+      console.log("before change", seq, change)
 // detect which channel got a new num in the seq feed...
       for (var ch in seq) {
         if (!channels[ch]) {
-          channels[ch] = {}
-          changed = true
+          console.log("ignore", change)
+          continue;
+          // channels[ch] = {}
         }
-        if (channels[ch][change.id]) {
-          // console.log("old", channels[ch][change.id], ch, seq[ch], change.id)
-          changed = true
-          channels[ch][change.id] = seq[ch]
-        }
+        channels[ch][change.id] = seq[ch]
+        changed = true
+        console.log("changed", ch, change.id, seq[ch])
       }
       // console.log("after change", JSON.stringify(channels))
       if (changed) w.setState({channels:channels})
@@ -259,7 +290,7 @@ function parseSeq(seq) {
       <div>
       <h3>Channels</h3>
       <ChannelList channels={channelNames} watch={this.props.watch}/>
-      <ChannelGrid channels={watchedChannels}/>
+      <ChannelGrid db={this.props.db} channels={watchedChannels}/>
       </div>
       /*jshint ignore:end */
     );

@@ -13,7 +13,6 @@ window.UsersPage = React.createClass({
       <div>
       <Nav db={db} page="users"/>
       <h2>Users for Database: {db}</h2>
-      <a href="/_utils/">home</a>
       <ListUsers db={db}/>
       <UserInfo db={db} userID={userID}/>
       </div>

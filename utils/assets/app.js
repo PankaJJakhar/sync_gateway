@@ -10,26 +10,13 @@ function dbLink(db, path) {
   return "/_utils/db/"+db+"/"+path;
 }
 
-
-window.Nav = React.createClass({
-  render : function() {
-    var db = this.props.db;
-    var page = this.props.page;
-    return (
-      /*jshint ignore:start */
-      <div>
-      <a href={dbLink(db, "channels")}>Channels</a>{" "}
-      <a href={dbLink(db, "users")}>Users</a>{" "}
-      <a href={dbLink(db, "documents")}>Documents</a>{" "}
-      <a href={dbLink(db, "documents")}>Config</a>
-      </div>
-      /*jshint ignore:end */
-    );
-  }
-});
+// setup sidebar
+React.renderComponent(
+  <AllDatabases/>, // jshint ignore:line
+  document.getElementById('sidebarNav')
+);
 
 var app = Davis(function() {
-
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;
 
@@ -42,31 +29,51 @@ var app = Davis(function() {
 
   this.scope("/_utils", function() {
     this.get('/', function (req) {
-      React.renderComponent(
-        <AllDatabases/>, // jshint ignore:line
+      React.renderComponent(<div><h1>Hello.</h1></div>,
         document.getElementById('container')
       );
     })
 
-    this.get('/db/:name/users', function (req) {
+    this.get('/db/:db/users', function (req) {
       React.renderComponent(
-        <UsersPage db={req.params.name}/>, // jshint ignore:line
+        <UsersPage db={req.params.db}/>, // jshint ignore:line
         document.getElementById('container')
       );
     })
 
-    this.get('/db/:name/users/:user', function (req) {
+    this.get('/db/:db/users/:user', function (req) {
       React.renderComponent(
-        <UsersPage db={req.params.name} userID={req.params.user}/>, // jshint ignore:line
+        <UsersPage db={req.params.db} userID={req.params.user}/>, // jshint ignore:line
         document.getElementById('container')
       );
     })
 
-    this.get('/db/:name/channels', function (req) {
+    this.get('/db/:db/documents/:id', function (req) {
+      React.renderComponent(
+        <DocumentsPage db={req.params.db} docID={req.params.id}/>, // jshint ignore:line
+        document.getElementById('container')
+      );
+    })
+
+    this.get('/db/:db/documents', function (req) {
+      React.renderComponent(
+        <DocumentsPage db={req.params.db}/>, // jshint ignore:line
+        document.getElementById('container')
+      );
+    })
+
+    this.get('/db/:db/channels', function (req) {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
       console.log("watch", watch)
       React.renderComponent(
-        <ChannelsPage db={req.params.name} watch={watch}/>, // jshint ignore:line
+        <ChannelsPage db={req.params.db} watch={watch}/>, // jshint ignore:line
+        document.getElementById('container')
+      );
+    })
+
+    this.get('/db/:name/channels/:id', function (req) {
+      React.renderComponent(
+        <ChannelsPage db={req.params.name} channel={req.params.id}/>, // jshint ignore:line
         document.getElementById('container')
       );
     })

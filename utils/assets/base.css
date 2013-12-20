@@ -4,7 +4,32 @@ body {
   font-size: 15px;
   line-height: 1.7;
   margin: 0;
-  padding: 30px;
+  padding: 0;
+}
+
+#container, #sidebar {
+  margin:0;
+  padding:0;
+}
+
+#sidebar {
+  background: #ddd;
+  float:left;
+  width: 15%;
+  min-height: 1000px;
+}
+
+#sidebarNav {
+  padding: 1em;
+}
+
+#container {
+  width: 85%;
+  float: right;
+}
+
+#logo img {
+  width: 100%;
 }
 
 a {
@@ -62,7 +87,7 @@ ul {
   list-style-type: none;
 }
 
-.ChannelList {
+.sidebar {
   float: left;
   width: 20%;
   background: #eef;
@@ -86,4 +111,15 @@ td {
 
 .watched {
   font-weight: bold;
+}
+
+.Nav {
+  font-size: 2em;
+  float: right;
+}
+
+a.home {
+  background: #bbf;
+  color:#fff;
+  padding: 4px 8px;
 }
