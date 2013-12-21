@@ -14,7 +14,6 @@ window.ChannelsPage = React.createClass({
     return (
       /*jshint ignore:start */
       <div>
-      <Nav db={db} page="channels"/>
       <h2>Database: {db}</h2>
       {content}
       </div>

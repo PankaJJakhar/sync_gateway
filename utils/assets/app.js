@@ -13,7 +13,7 @@ function dbLink(db, path) {
 // setup sidebar
 React.renderComponent(
   <AllDatabases/>, // jshint ignore:line
-  document.getElementById('sidebarNav')
+  document.getElementById('sidebarDbPageNav')
 );
 
 var app = Davis(function() {
@@ -35,45 +35,58 @@ var app = Davis(function() {
     })
 
     this.get('/db/:db/users', function (req) {
+      var content = <UsersPage db={req.params.db}/>
+
       React.renderComponent(
-        <UsersPage db={req.params.db}/>, // jshint ignore:line
+        <DbPageNav page="users" params={req.params}>
+
+        </DbPageNav>,
         document.getElementById('container')
       );
     })
 
-    this.get('/db/:db/users/:user', function (req) {
+    this.get('/db/:db/users/:id', function (req) {
       React.renderComponent(
-        <UsersPage db={req.params.db} userID={req.params.user}/>, // jshint ignore:line
+        <DbPageNav page="users" params={req.params}>
+          <UsersPage db={req.params.db} userID={req.params.id}/>
+        </DbPageNav>,
         document.getElementById('container')
       );
     })
 
     this.get('/db/:db/documents/:id', function (req) {
       React.renderComponent(
-        <DocumentsPage db={req.params.db} docID={req.params.id}/>, // jshint ignore:line
+        <DbPageNav page="documents" params={req.params}>
+          <DocumentsPage db={req.params.db} docID={req.params.id}/>
+        </DbPageNav>,
         document.getElementById('container')
       );
     })
 
     this.get('/db/:db/documents', function (req) {
       React.renderComponent(
-        <DocumentsPage db={req.params.db}/>, // jshint ignore:line
+        <DbPageNav page="documents" params={req.params}>
+          <DocumentsPage db={req.params.db}/>
+        </DbPageNav>,
         document.getElementById('container')
       );
     })
 
     this.get('/db/:db/channels', function (req) {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
-      console.log("watch", watch)
       React.renderComponent(
-        <ChannelsPage db={req.params.db} watch={watch}/>, // jshint ignore:line
+        <DbPageNav page="channels" params={req.params}>
+          <ChannelsPage db={req.params.db} watch={watch}/>
+        </DbPageNav>,
         document.getElementById('container')
       );
     })
 
     this.get('/db/:name/channels/:id', function (req) {
       React.renderComponent(
-        <ChannelsPage db={req.params.name} channel={req.params.id}/>, // jshint ignore:line
+        <DbPageNav page="channels" params={req.params}>
+          <ChannelsPage db={req.params.name} channel={req.params.id}/>
+        </DbPageNav>,
         document.getElementById('container')
       );
     })

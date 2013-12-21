@@ -10,7 +10,6 @@ window.DocumentsPage = React.createClass({
     return (
       /*jshint ignore:start */
       <div>
-      <Nav db={db} page="users"/>
       <h2>Users for Database: {db}</h2>
       <DocInfo db={db} docID={docID}/>
       </div>

@@ -11,8 +11,6 @@ window.UsersPage = React.createClass({
     return (
       /*jshint ignore:start */
       <div>
-      <Nav db={db} page="users"/>
-      <h2>Users for Database: {db}</h2>
       <ListUsers db={db}/>
       <UserInfo db={db} userID={userID}/>
       </div>
