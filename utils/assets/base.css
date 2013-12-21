@@ -7,7 +7,7 @@ body {
   padding: 0;
 }
 
-#container, #sidebar {
+#main, #container, #sidebar {
   margin:0;
   padding:0;
 }
@@ -19,7 +19,16 @@ body {
   min-height: 1000px;
 }
 
-#sidebarDbPageNav {
+#main {
+  width: 85%;
+  float: left;
+}
+
+.content {
+  margin: 1em;
+}
+
+.SidebarList {
   padding: 1em;
 }
 
@@ -28,17 +37,8 @@ body {
 }
 
 
-#container {
-  width: 85%;
-  float: right;
-}
-
-.DbPageNav {
+.NavBar {
   font-size: 2em;
-}
-
-.page {
-  padding: 1em;
 }
 
 a {
