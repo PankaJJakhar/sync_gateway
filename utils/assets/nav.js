@@ -26,7 +26,7 @@ var SidebarList =  React.createClass({
     return <div className="SidebarList">
       <Breadcrumbs params={this.props.params}/>
       This should update for which page you are on.
-      {this.props.sidebarList}
+      {this.props.sidebar}
     </div>;
   }
 });
@@ -40,7 +40,6 @@ var Breadcrumbs =  React.createClass({
 window.PageWrap = React.createClass({
   render : function() {
     console.log("PageWrap", this.props)
-    if (!this.props.params) this.props.params = {};
     var sidebarList= this.transferPropsTo(<SidebarList />)
     return (
       /*jshint ignore:start */
@@ -51,7 +50,7 @@ window.PageWrap = React.createClass({
         </div>
         <div id="main">
           <div className="content">
-            <NavBar db={this.props.params.db}/>
+            <NavBar db={this.props.db}/>
             {this.props.children}
           </div>
         </div>

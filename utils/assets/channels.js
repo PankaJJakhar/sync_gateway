@@ -3,6 +3,12 @@
 
 var coax = require("coax"), sg = coax(location.origin);
 
+window.ChannelsList = React.createClass({
+  render : function() {
+    return  <p>ChannelsList</p>
+  }
+})
+
 window.ChannelsPage = React.createClass({
   render : function() {
     var content, db = this.props.db;
