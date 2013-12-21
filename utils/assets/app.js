@@ -36,10 +36,9 @@ var app = Davis(function() {
 
     this.get('/db/:db/users', function (req) {
       var content = <UsersPage db={req.params.db}/>
-
       React.renderComponent(
         <DbPageNav page="users" params={req.params}>
-
+          {content}
         </DbPageNav>,
         document.getElementById('container')
       );
