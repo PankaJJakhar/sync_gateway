@@ -11,7 +11,6 @@ window.UsersPage = React.createClass({
     return (
       /*jshint ignore:start */
       <div>
-      <ListUsers db={db}/>
       <UserInfo db={db} userID={userID}/>
       </div>
       /*jshint ignore:end */
@@ -45,7 +44,7 @@ var UserInfo = React.createClass({
       /*jshint ignore:start */
       <div>
       <h2>{user.name}</h2>
-      <h3>Channels</h3>
+      <h3><a href={dbLink(db,"channels?title=Channels for "+user.name+"&watch="+user.all_channels.join(','))}>Channels</a></h3>
       <ul>
 {
   user.all_channels.map(function(ch){
@@ -62,7 +61,7 @@ var UserInfo = React.createClass({
   }
 });
 
-var ListUsers = React.createClass({
+window.UsersForDatabase = React.createClass({
   getInitialState: function() {
     return {users: []};
   },

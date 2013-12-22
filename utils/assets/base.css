@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   background: #fff;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;;
@@ -28,7 +32,7 @@ body {
   margin: 1em;
 }
 
-.SidebarList {
+.sideNav {
   padding: 1em;
 }
 
@@ -39,6 +43,16 @@ body {
 
 .NavBar {
   font-size: 2em;
+  border-bottom: 1px solid #ddd;
+}
+
+.clear {
+  clear:both;
+}
+
+a.active {
+  font-weight: bold;
+  /*text-decoration: underline;*/
 }
 
 a {
@@ -48,6 +62,76 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+.DocInfo {
+  /*background: #bbb;*/
+}
+
+.JSONDoc {
+  width: 50%;
+  padding:1em;
+  float:left;
+}
+
+.JSONDoc pre {
+  background: #fffded;
+  padding: 0.1em 0.25em;
+}
+
+.DocSyncPreview {
+  float:left;
+  width: 30%;
+  padding:1em;
+}
+
+.DocSyncPreview dl {
+  background: #ddedfd;
+  padding: 0.1em 0.25em;
+  margin: 0.25em;
+}
+
+.ChannelGrid {
+/*  width: 100%;
+  overflow-x:scroll;*/
+}
+
+.ChannelGrid>ul {
+  white-space:nowrap;
+  width: 78%;
+  overflow-x:scroll;
+  float: left;
+
+}
+
+.ChannelGrid>li {
+  display: block;
+  float: left;
+}
+
+.ChannelGrid>li, .ChannelGrid>ul>li {
+  white-space:normal;
+  background: #eee;
+  width: 16em;
+  margin: .25em;
+  padding:.25em;
+  display: inline-flex;
+}
+
+.ChangeList li {
+  background: #ddedfd;
+  margin:.25em;
+  padding:.25em;
+}
+
+.RecentChannels {
+
+}
+
+.RecentChannels li {
+  background: #ddd;
+  margin:.25em;
+  padding:.25em;
 }
 
 code {
@@ -96,27 +180,16 @@ ul {
   list-style-type: none;
 }
 
-.sidebar {
+/*.sidebar {
   float: left;
   width: 20%;
   background: #eef;
 }
-
-.ChannelGrid {
-  background: #efe;
-  float: right;
-  width: 75%;
-  overflow: scroll;
-}
-
+*/
 .DocsInChannel {
   margin: 1em;
 }
 
-td {
-  background: #eee;
-  margin: 1em;
-}
 
 .watched {
   font-weight: bold;

@@ -76,7 +76,7 @@ func (h *handler) handleGetRawDoc() error {
 	docid := h.PathVar("docid")
 	doc, err := h.db.GetDoc(docid)
 	h.writeJSON(doc)
-	return nil
+	return err
 }
 
 

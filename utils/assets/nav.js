@@ -1,56 +1,37 @@
 /** @jsx React.DOM */
 
-
 var NavBar = React.createClass({
   render : function() {
     console.log("NavBar", this.props)
-
+    var page = this.props.page;
     var db = this.props.db;
-    if (!db) return <div/>;
+    if (!db) return <div className="NavBar"><h2>Hello.</h2></div>;
 
     return (<div className="NavBar">
-          <a href={dbLink(db, "channels")}>Channels</a>{" "}
-          <a href={dbLink(db, "users")}>Users</a>{" "}
-          <a href={dbLink(db, "documents")}>Config</a>
-        </div>);
+      <strong>{db}</strong>{" > "}
+      <a className={page == "info" && "active"}
+        href={dbLink(db)}>Info</a>{" : "}
+      <a className={page == "channels" && "active"}
+        href={dbLink(db, "channels")}>Channels</a>{" : "}
+      <a className={page == "users" && "active"}
+        href={dbLink(db, "users")}>Users</a>
+
+    </div>);
   }
 })
 
-
-
-var SidebarList =  React.createClass({
-  // needs to maintain breadcrumbs state, render breadcrumbs for state
-  render : function() {
-    var name = this.props.page + (this.props.db||"");
-    console.log("SidebarList", this.props)
-    return <div className="SidebarList">
-      <Breadcrumbs params={this.props.params}/>
-      This should update for which page you are on.
-      {this.props.sidebar}
-    </div>;
-  }
-});
-var Breadcrumbs =  React.createClass({
-  render : function() {
-    return <div className="Breadcrumbs"><a href="/_utils/">home</a></div>
-  }
-});
-
-
 window.PageWrap = React.createClass({
   render : function() {
-    console.log("PageWrap", this.props)
-    var sidebarList= this.transferPropsTo(<SidebarList />)
     return (
       /*jshint ignore:start */
       <div className="page">
         <div id="sidebar">
           <a id="logo" href="/_utils/"><img src="/_utils/assets/logo.png"/></a>
-          {sidebarList}
+          <div className="sideNav"><AllDatabases/></div>
         </div>
         <div id="main">
           <div className="content">
-            <NavBar db={this.props.db}/>
+            <NavBar db={this.props.db} page={this.props.page}/>
             {this.props.children}
           </div>
         </div>

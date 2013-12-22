@@ -4,10 +4,9 @@
 
 window.AllDatabases = React.createClass({
   loadList : function() {
-    var w = this;
     sg.get("_all_dbs", function(err, list) {
-      w.setState({dbs: list});
-    });
+      this.setState({dbs: list});
+    }.bind(this));
   },
   getInitialState: function() {
     return {dbs: []};
@@ -19,12 +18,13 @@ window.AllDatabases = React.createClass({
   render : function() {
     console.log(this.state)
     var dbs = this.state.dbs;
-    return (
+    return (<div>
+      <h3>Databases</h3>
       <ul>
       {dbs.map(function(name) {
-        return <li key={name}><a href={"/_utils/db/"+name+"/channels"}>{name}</a></li>;
+        return <li key={name}><a href={dbLink(name)}>{name}</a></li>;
       })}
       </ul>
-    );
+    </div>);
   }
 });

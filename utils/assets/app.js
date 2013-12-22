@@ -14,7 +14,11 @@ function draw(component, container) {
 }
 
 function dbLink(db, path) {
-  return "/_utils/db/"+db+"/"+path;
+  var base = "/_utils/db/"+db
+  if (path) {
+    base += "/"+path
+  }
+  return base
 }
 
 
@@ -33,16 +37,22 @@ var app = Davis(function() {
 // for my channels in the channels view
   this.scope("/_utils", function() {
     this.get('/', function (req) {
-      draw(<PageWrap page="home" sidebar={<AllDatabases/>}>
-        <h1>Hello.</h1>
+      draw(<PageWrap page="home">
         <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
         </PageWrap>)
     })
 
+    this.get('/db/:db', function (req) {
+      draw(
+        <PageWrap db={req.params.db} page="info">
+          <DbInfoPage db={req.params.db}/>
+        </PageWrap>);
+    })
+
     function userPage(req) {
-      draw(<PageWrap page="users" db={req.params.db}
-        sidebar={<UsersForDatabase db={req.params.db}/>}>
-        <UsersPage db={req.params.db} userID={req.params.id}/>
+      draw(
+        <PageWrap page="users" db={req.params.db}>
+          <UsersPage db={req.params.db} userID={req.params.id}/>
         </PageWrap>);
     }
 
@@ -50,14 +60,14 @@ var app = Davis(function() {
     this.get('/db/:db/users/:id', userPage)
 
     this.get('/db/:db/documents/:id', function (req) {
-      draw(<PageWrap db={req.params.db} page="documents" params={req.params}>
+      draw(<PageWrap db={req.params.db} page="documents">
           <DocumentsPage db={req.params.db} docID={req.params.id}/>
         </PageWrap>);
     })
 
     this.get('/db/:db/documents', function (req) {
       draw(
-        <PageWrap db={req.params.db} page="documents" params={req.params}>
+        <PageWrap db={req.params.db} page="documents">
           <DocumentsPage db={req.params.db}/>
         </PageWrap>);
     })
@@ -65,16 +75,15 @@ var app = Davis(function() {
     this.get('/db/:db/channels', function (req) {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
       draw(
-        <PageWrap db={req.params.db} page="channels" params={req.params}
-          sidebar={<RecentChannels db={req.params.db} watch={watch}/>}>
-            <ChannelsPage db={req.params.db} watch={watch}/>
+        <PageWrap db={req.params.db} page="channels">
+            <ChannelsGridPage db={req.params.db} watch={watch} title={req.params.title}/>
         </PageWrap>);
     })
 
-    this.get('/db/:name/channels/:id', function (req) {
+    this.get('/db/:db/channels/:id', function (req) {
       draw(
-        <PageWrap db={req.params.db} page="channels" params={req.params}>
-          <ChannelsPage db={req.params.name} channel={req.params.id}/>
+        <PageWrap db={req.params.db} page="channels">
+          <ChannelInfoPage db={req.params.db} id={req.params.id}/>
         </PageWrap>);
     })
   })
