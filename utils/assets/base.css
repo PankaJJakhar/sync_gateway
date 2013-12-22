@@ -90,8 +90,8 @@ a:hover {
 }
 
 #main {
-  width: 85%;
-  float: left;
+/*  width: 85%;
+  float: left;*/
 }
 
 .content {
@@ -102,8 +102,13 @@ a:hover {
   padding: 1em;
 }
 
-#logo img {
-  width: 100%;
+.logo {
+  /*background: #ddd;*/
+}
+.logo img {
+  padding-top: 0.2em;
+  margin:0 0.2em;
+  height: .8em;
 }
 
 .NavBar {

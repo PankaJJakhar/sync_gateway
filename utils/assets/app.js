@@ -34,11 +34,11 @@ var app = Davis(function() {
     }, 2000)
   })
 
-this.bind("lookupRoute", function(req) {
-  if (req.path.indexOf("/_utils") !== 0) {
-    req.delegateToServer()
-  }
-})
+  this.bind("lookupRoute", function(req) {
+    if (req.path.indexOf("/_utils") !== 0) {
+      req.delegateToServer()
+    }
+  })
 
 // todo route /_utils/db/todos/users/jchris@gmail.com/channels
 // for my channels in the channels view
@@ -46,6 +46,7 @@ this.bind("lookupRoute", function(req) {
     this.get('/', function (req) {
       draw(<PageWrap page="home">
         <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
+        <AllDatabases/>
         </PageWrap>)
     })
 

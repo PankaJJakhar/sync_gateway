@@ -8,6 +8,9 @@ var NavBar = React.createClass({
     if (!db) return <div className="NavBar"><h2>Hello.</h2></div>;
 
     return (<div className="NavBar">
+      <a className="logo" href="/_utils/">
+        <img src="/_utils/assets/logo.png"/>
+      </a>{" "}
       <strong>{db}</strong>{" > "}
       <a className={page == "info" && "active"}
         href={dbLink(db)}>Info</a>{" : "}
@@ -20,15 +23,16 @@ var NavBar = React.createClass({
   }
 })
 
+// <div id="sidebar">
+//   <a id="logo" href="/_utils/"><img src="/_utils/assets/logo.png"/></a>
+//   <div className="sideNav"></div>
+// </div>
 window.PageWrap = React.createClass({
   render : function() {
     return (
       /*jshint ignore:start */
       <div className="page">
-        <div id="sidebar">
-          <a id="logo" href="/_utils/"><img src="/_utils/assets/logo.png"/></a>
-          <div className="sideNav"><AllDatabases/></div>
-        </div>
+
         <div id="main">
           <div className="content">
             <NavBar db={this.props.db} page={this.props.page}/>
