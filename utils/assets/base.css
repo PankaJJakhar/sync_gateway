@@ -1,3 +1,4 @@
+/* global tags */
 * {
   box-sizing: border-box;
 }
@@ -10,6 +11,71 @@ body {
   margin: 0;
   padding: 0;
 }
+
+code {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-family: "Bitstream Vera Sans Mono", Consolas, Courier, monospace;
+  font-size: 12px;
+  margin: 0 2px;
+  padding: 0px 5px;
+}
+
+h1, h2, h3, h4 {
+  font-weight: bold;
+  margin: 0 0 15px;
+  padding: 0;
+}
+
+h1 {
+  border-bottom: 1px solid #ddd;
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 0 0 15px;
+  padding: 0;
+}
+
+h2 {
+  border-bottom: 1px solid #eee;
+  font-size: 2em;
+}
+
+h3 {
+  font-size: 1.5em;
+}
+
+h4 {
+  font-size: 1.2em;
+}
+
+p, ul {
+  margin: 15px 0;
+}
+
+ul {
+  padding-left: 0;
+  list-style-type: none;
+}
+
+a {
+  color: #4183c4;
+  text-decoration: none;
+}
+
+a.active {
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.clear {
+  clear:both;
+}
+
+/* layout */
 
 #main, #container, #sidebar {
   margin:0;
@@ -40,29 +106,13 @@ body {
   width: 100%;
 }
 
-
 .NavBar {
   font-size: 2em;
   border-bottom: 1px solid #ddd;
 }
 
-.clear {
-  clear:both;
-}
+/* layout */
 
-a.active {
-  font-weight: bold;
-  /*text-decoration: underline;*/
-}
-
-a {
-  color: #4183c4;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
 
 .DocInfo {
   /*background: #bbb;*/
@@ -126,58 +176,8 @@ a:hover {
   display: inline-flex;
 }
 
-code {
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  font-family: "Bitstream Vera Sans Mono", Consolas, Courier, monospace;
-  font-size: 12px;
-  margin: 0 2px;
-  padding: 0px 5px;
-}
 
-h1, h2, h3, h4 {
-  font-weight: bold;
-  margin: 0 0 15px;
-  padding: 0;
-}
 
-h1 {
-  border-bottom: 1px solid #ddd;
-  font-size: 2.5em;
-  font-weight: bold;
-  margin: 0 0 15px;
-  padding: 0;
-}
-
-h2 {
-  border-bottom: 1px solid #eee;
-  font-size: 2em;
-}
-
-h3 {
-  font-size: 1.5em;
-}
-
-h4 {
-  font-size: 1.2em;
-}
-
-p, ul {
-  margin: 15px 0;
-}
-
-ul {
-  padding-left: 0;
-  list-style-type: none;
-}
-
-/*.sidebar {
-  float: left;
-  width: 20%;
-  background: #eef;
-}
-*/
 .DocsInChannel {
   margin: 1em;
 }
@@ -187,10 +187,13 @@ ul {
   font-weight: bold;
 }
 
+.SyncFunctionView {
 
+}
 
-a.home {
-  background: #bbf;
-  color:#fff;
-  padding: 4px 8px;
+.SyncFunctionView pre {
+  background: #abc;
+  height: 300px;
+  overflow: scroll;
+  padding: 0.25em;
 }

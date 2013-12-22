@@ -29,10 +29,26 @@ window.DbInfoPage = React.createClass({
     /*jshint ignore:start */
     return (
       <div>
-        <p>{info.doc_count} docs. {info.update_seq} updates.</p>
-        <code><pre>{info.config.sync}</pre></code>
+        <p>{db} has {info.doc_count} docs. {info.update_seq} updates.</p>
+        <SyncFunctionView db={db} code={info.config.sync}/>
       </div>
       )
     /*jshint ignore:end */
+  }
+})
+
+var SyncFunctionView = React.createClass({
+  render : function() {
+    var docID = "84DEC4C6-D287-4062-8C9B-5692A2CA8929"
+    return <div className="SyncFunctionView">
+    <h3>Sync Function</h3>
+      <p>This code determines Sync Gateway application behavior. It can validate document updates, route documents to channels, and grant access to users and groups to read from channels. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function documentation.</a></p>
+      <pre><code>{this.props.code}</code></pre>
+      <h3>Preview Sync Results</h3>
+      <p>This preview shows the channel mapping and access control output of the sync function based on a document in your database.</p>
+      <p><a onClick={function(){}}>Select a random document.</a>{" "}
+      <a onClick={function(){}}>Select a random document that has access control output.</a></p>
+      <DocInfo db={this.props.db} docID={docID}/>
+    </div>
   }
 })
