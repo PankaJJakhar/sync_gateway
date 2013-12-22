@@ -29,7 +29,7 @@ function hrefToggleWatchingChannel(db, chName, current) {
 
 window.ChannelInfoPage = React.createClass({
   getInitialState: function() {
-    return {access: [], name : "", db : false};
+    return {access: [], channel: {}, name : "", db : false};
   },
   setStateForProps : function(props) {
     console.log("setStateForProps", props)
@@ -41,7 +41,17 @@ window.ChannelInfoPage = React.createClass({
             usersForChannel.push(r)
           }
         });
-        this.setState({access : usersForChannel, name : props.id, db : props.db})
+
+        var watcher = channelWatcher(props.db)
+        console.log("componentWillMount ChannelsGridPage", props, watcher)
+        watcher.onChange("ChannelsGridPage", function(change) {
+          this.setState({
+            channel : watcher.channels([props.id])[0],
+            access : usersForChannel,
+            name : props.id,
+            db : props.db})
+        }.bind(this))
+
       }.bind(this))
     } else {
       this.setState(this.getInitialState())
@@ -68,12 +78,14 @@ window.ChannelInfoPage = React.createClass({
     return (
       <div>
         <h2>Channel Info: {name}</h2>
-        Should have the grid for just me
+
+        <ChangeList channel={this.state.channel} db={db}></ChangeList>
+
         <h3>Access Control: Readers</h3>
         {access && <ul>{access}</ul>}
         {
           (db && name) &&
-            <iframe width="75%" height="400px" src={"/"+db+"/_dumpchannel/"+name}></iframe>
+            <a target="_new" href={"/"+db+"/_dumpchannel/"+name}>Dump</a>
         }
       </div>
       )
@@ -110,7 +122,7 @@ window.ChannelsGridPage = React.createClass({
     return (
       <div className="ChannelGrid">
       <h2>{title}</h2>
-      <li><RecentChannels db={db} watch={this.props.watch}/></li>
+      <RecentChannels db={db} watch={this.props.watch}/>
       <ul>
       {channels.map(function(ch){
         return <li><ChangeList channel={ch} db={db}></ChangeList></li>
@@ -166,10 +178,9 @@ window.RecentChannels = React.createClass({
       {this.state.channelNames.map(function(ch) {
         var isWatched = watch.indexOf(ch) !== -1
         return <li key={ch+isWatched}>
-          <a href={hrefToggleWatchingChannel(this.state.db, ch, currentLoc)}>
-            <input type="checkbox" name="watch" checked={isWatched}/>
+          <a className={isWatched && "active"} href={hrefToggleWatchingChannel(this.state.db, ch, currentLoc)}>
+            {ch}
           </a>
-          <a href={dbLink(this.state.db, "channels/"+ch)}>{ch}</a>
           </li>;
       }.bind(this))}
     </ul></div>)

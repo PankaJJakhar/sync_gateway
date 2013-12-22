@@ -98,18 +98,10 @@ a:hover {
 
 .ChannelGrid>ul {
   white-space:nowrap;
-  width: 78%;
   overflow-x:scroll;
-  float: left;
-
 }
 
-.ChannelGrid>li {
-  display: block;
-  float: left;
-}
-
-.ChannelGrid>li, .ChannelGrid>ul>li {
+.ChannelGrid>ul>li {
   white-space:normal;
   background: #eee;
   width: 16em;
@@ -125,13 +117,13 @@ a:hover {
 }
 
 .RecentChannels {
-
 }
 
 .RecentChannels li {
-  background: #ddd;
-  margin:.25em;
-  padding:.25em;
+  background: #eee;
+  margin:0.1em .25em;
+  padding:0.1em .25em;
+  display: inline-flex;
 }
 
 code {

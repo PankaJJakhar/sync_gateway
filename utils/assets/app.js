@@ -33,6 +33,13 @@ var app = Davis(function() {
       window.location = "/_utils"
     }, 2000)
   })
+
+this.bind("lookupRoute", function(req) {
+  if (req.path.indexOf("/_utils") !== 0) {
+    req.delegateToServer()
+  }
+})
+
 // todo route /_utils/db/todos/users/jchris@gmail.com/channels
 // for my channels in the channels view
   this.scope("/_utils", function() {
