@@ -21,8 +21,6 @@ function dbLink(db, path) {
   return base
 }
 
-
-
 var app = Davis(function() {
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;

@@ -141,9 +141,10 @@ var ChangeList = React.createClass({
     return (
       <div className="ChangeList">
       <a className="watched" href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a>
+      {!channel.access && " (no access grants)"}
     <ul>
       {channel.changes.map(function(ch){
-        var isAccess = channel.access[ch[0]] && "isAccess";
+        var isAccess = channel.access && channel.access[ch[0]] && "isAccess";
         return <li className={isAccess}>{ch[1]} : <a href={dbLink(db, "documents/"+ch[0])}>{ch[0]}</a></li>
       })}
     </ul></div>

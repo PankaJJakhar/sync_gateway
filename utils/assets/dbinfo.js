@@ -48,8 +48,11 @@ var SyncFunctionView = React.createClass({
   },
   handleExampleClick : function(def){
     console.log("handleExampleClick", def, this.refs.syncCode.getDOMNode())
-    var ta = this.refs.syncCode.getDOMNode()
-    ta.value = examples[def]
+    // var ta = this.refs.syncCode.getDOMNode()
+    var state = this.state;
+    state.code = examples[def]
+    this.setState(state)
+    // ta.value = examples[def]
     //  = examples["basic"];
   },
   handleRandomAccessDoc : function() {
@@ -59,8 +62,9 @@ var SyncFunctionView = React.createClass({
       var randomChannel = map[keys[Math.floor(Math.random()*keys.length)]];
       var rKeys = Object.keys(randomChannel)
       var randomDoc = rKeys[Math.floor(Math.random()*rKeys.length)]
-      console.log("map" , randomDoc)
-      this.setState({docID : randomDoc})
+      var state = this.state;
+      state.docID = randomDoc
+      this.setState(state)
     }.bind(this))
   },
   handleRandomDoc : function() {
@@ -72,18 +76,23 @@ var SyncFunctionView = React.createClass({
       var chInfo = watcher.channels([ch])[0];
       var rIds = Object.keys(chInfo.docs)
       var randomDoc = rIds[Math.floor(Math.random()*rIds.length)]
-      this.setState({docID : randomDoc})
+      var state = this.state;
+      state.docID = randomDoc
+      this.setState(state)
     }.bind(this))
   },
   componentDidMount : function(){
     this.handleRandomAccessDoc()
   },
   render : function() {
-    var docID = "84DEC4C6-D287-4062-8C9B-5692A2CA8929"
+    console.log("SyncFunctionView", this.state, this.props)
     return <div className="SyncFunctionView">
-    <h3>Sync Function</h3>
+      <h3>Sync Function</h3>
+      <div className="SyncFunctionCode">
+        <textarea ref="syncCode" value={this.state.code || this.props.code}/>
+      </div>
+
       <p>This code determines Sync Gateway application behavior. It can validate document updates, route documents to channels, and grant access to users and groups to read from channels. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function documentation.</a></p>
-      <textarea ref="syncCode" value={this.props.code}/>
       <p>Examples: <a onClick={this.handleExampleClick.bind(this, "basic")}>basic</a></p>
       <h3>Preview Sync Results</h3>
       <p>This preview shows the channel mapping and access control output of the sync function based on a document in your database.</p>
