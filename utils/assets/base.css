@@ -196,9 +196,12 @@ a:hover {
 
 }
 
-.SyncFunctionView pre {
-  background: #abc;
+
+
+.SyncFunctionView textarea {
+  font-size: 1em;
   height: 300px;
+  width:60%;
   overflow: scroll;
   padding: 0.25em;
 }
