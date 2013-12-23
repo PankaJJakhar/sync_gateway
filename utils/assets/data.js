@@ -1,4 +1,16 @@
 
+var docAccessMap = {};
+function getDocAccessMap(db, done) {
+  sg.get([db, "_view", "access"], function(err, data) {
+    data.rows.forEach(function(r) {
+      for (var ch in r.value) {
+        docAccessMap[ch] = docAccessMap[ch] || {}
+        docAccessMap[ch][r.id] = r.value[ch];
+      }
+    })
+    done(err, docAccessMap)
+  })
+}
 
 
 window.channelWatcher = function(db) {
@@ -18,13 +30,18 @@ window.channelWatcher = function(db) {
   queryAllChannels(db, function(err, chs) {
     console.log("queryAllChannels done", err, chs)
     if (err) return;
-    state.channels = chs;
-    didChange()
+
+    getDocAccessMap(db, function(err, accessMap) {
+      state.access = accessMap;
+      state.channels = chs;
+      didChange()
+    })
+
   })
 
   function channelsList(forChannels) {
     return forChannels.map(function(ch){
-      return {name : ch, docs : state.channels[ch]}
+      return {name : ch, docs : state.channels[ch], access : state.access[ch]}
     })
   }
 
@@ -56,7 +73,8 @@ window.channelWatcher = function(db) {
           var docid = revs[rs[i]];
           changes.push([docid, rs[i]])
         }
-        chLists.push({name : ch.name, changes: changes})
+        ch.changes = changes;
+        chLists.push(ch)
       })
       return chLists
     }
@@ -66,6 +84,7 @@ window.channelWatcher = function(db) {
 function queryAllChannels(db, done) {
   sg.get([db, "_view", "channels"], function(err, data) {
     if (err) return done(err);
+    console.log("queryAllChannels", data)
     var ch, max = 0, keys = {}, rows = data.rows;
     for (var i = 0; i < rows.length; i++) {
       ch = rows[i].key[0];

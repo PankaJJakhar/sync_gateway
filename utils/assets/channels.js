@@ -41,9 +41,9 @@ window.ChannelInfoPage = React.createClass({
             usersForChannel.push(r)
           }
         });
+        console.log("usersForChannel", usersForChannel)
 
         var watcher = channelWatcher(props.db)
-        console.log("componentWillMount ChannelsGridPage", props, watcher)
         watcher.onChange("ChannelsGridPage", function(change) {
           this.setState({
             channel : watcher.channels([props.id])[0],
@@ -138,13 +138,14 @@ var ChangeList = React.createClass({
   render : function() {
     var channel = this.props.channel;
     var db = this.props.db;
-    // console.log("ChangeList", channel)
+    console.log("ChangeList", channel)
     return (
       <div className="ChangeList">
       <strong><a href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a></strong>
     <ul>
       {channel.changes.map(function(ch){
-        return <li>{ch[1]} : <a href={dbLink(db, "documents/"+ch[0])}>{ch[0]}</a></li>
+        var isAccess = channel.access[ch[0]] && "isAccess";
+        return <li className={isAccess}>{ch[1]} : <a href={dbLink(db, "documents/"+ch[0])}>{ch[0]}</a></li>
       })}
     </ul></div>
           );

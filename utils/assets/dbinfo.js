@@ -43,11 +43,25 @@ var examples = {
 
 
 var SyncFunctionView = React.createClass({
-  handleExampleClick : function(){
-    console.log("handleExampleClick", this.refs.syncCode.getDOMNode())
+  getInitialState : function() {
+    return {docID : ""}
+  },
+  handleExampleClick : function(def){
+    console.log("handleExampleClick", def, this.refs.syncCode.getDOMNode())
     var ta = this.refs.syncCode.getDOMNode()
-    ta.value = examples["basic"]
+    ta.value = examples[def]
     //  = examples["basic"];
+  },
+  handleRandomAccessDoc : function() {
+    console.log("handleRandomAccessDoc")
+    getDocAccessMap(this.props.db, function(err, map){
+      var keys = Object.keys(map)
+      var randomChannel = map[keys[Math.floor(Math.random()*keys.length)]];
+      var rKeys = Object.keys(randomChannel)
+      var randomDoc = rKeys[Math.floor(Math.random()*rKeys.length)]
+      console.log("map" , randomDoc)
+      this.setState({docID : randomDoc})
+    }.bind(this))
   },
   render : function() {
     var docID = "84DEC4C6-D287-4062-8C9B-5692A2CA8929"
@@ -55,12 +69,12 @@ var SyncFunctionView = React.createClass({
     <h3>Sync Function</h3>
       <p>This code determines Sync Gateway application behavior. It can validate document updates, route documents to channels, and grant access to users and groups to read from channels. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function documentation.</a></p>
       <textarea ref="syncCode" value={this.props.code}/>
-      <p>Examples: <a onClick={this.handleExampleClick}>default</a></p>
+      <p>Examples: <a onClick={this.handleExampleClick.bind(this, "basic")}>basic</a></p>
       <h3>Preview Sync Results</h3>
       <p>This preview shows the channel mapping and access control output of the sync function based on a document in your database.</p>
       <p><a onClick={function(){}}>Select a random document.</a>{" "}
-      <a onClick={function(){}}>Select a random document that has access control output.</a></p>
-      <DocInfo db={this.props.db} docID={docID}/>
+      <a onClick={this.handleRandomAccessDoc.bind(this)}>Select a random document that has access control output.</a></p>
+      <DocInfo db={this.props.db} docID={this.state.docID}/>
     </div>
   }
 })
