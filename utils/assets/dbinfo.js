@@ -2,7 +2,7 @@
 
 window.DbInfoPage = React.createClass({
   getInitialState: function() {
-    return {info: {config:{}}, db : false};
+    return {info: {config:{}}, db : this.props.db};
   },
   setStateForProps : function(props) {
     console.log("setStateForProps", props)
@@ -53,7 +53,7 @@ var SyncFunctionView = React.createClass({
     //  = examples["basic"];
   },
   handleRandomAccessDoc : function() {
-    console.log("handleRandomAccessDoc")
+    console.log("handleRandomAccessDoc", this.props)
     getDocAccessMap(this.props.db, function(err, map){
       var keys = Object.keys(map)
       var randomChannel = map[keys[Math.floor(Math.random()*keys.length)]];
@@ -62,6 +62,21 @@ var SyncFunctionView = React.createClass({
       console.log("map" , randomDoc)
       this.setState({docID : randomDoc})
     }.bind(this))
+  },
+  handleRandomDoc : function() {
+    console.log("handleRandomDoc", this.props)
+    var watcher = channelWatcher(this.props.db)
+    watcher.onChange("handleRandomDoc", function(change) {
+      var chs = watcher.channelNames()
+      var ch = chs[Math.floor(Math.random()*chs.length)]
+      var chInfo = watcher.channels([ch])[0];
+      var rIds = Object.keys(chInfo.docs)
+      var randomDoc = rIds[Math.floor(Math.random()*rIds.length)]
+      this.setState({docID : randomDoc})
+    }.bind(this))
+  },
+  componentDidMount : function(){
+    this.handleRandomAccessDoc()
   },
   render : function() {
     var docID = "84DEC4C6-D287-4062-8C9B-5692A2CA8929"
@@ -72,8 +87,8 @@ var SyncFunctionView = React.createClass({
       <p>Examples: <a onClick={this.handleExampleClick.bind(this, "basic")}>basic</a></p>
       <h3>Preview Sync Results</h3>
       <p>This preview shows the channel mapping and access control output of the sync function based on a document in your database.</p>
-      <p><a onClick={function(){}}>Select a random document.</a>{" "}
-      <a onClick={this.handleRandomAccessDoc.bind(this)}>Select a random document that has access control output.</a></p>
+      <p><a onClick={this.handleRandomDoc}>Select a random document.</a>{" "}
+      <a onClick={this.handleRandomAccessDoc}>Select a random document that has access control output.</a></p>
       <DocInfo db={this.props.db} docID={this.state.docID}/>
     </div>
   }

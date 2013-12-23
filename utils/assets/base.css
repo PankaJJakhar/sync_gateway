@@ -136,21 +136,19 @@ a:hover {
   padding: 0.1em 0.25em;
 }
 
-.DocSyncPreview {
+.channelDocs, .DocSyncPreview {
   float:left;
   width: 30%;
-  padding:1em;
+  padding: 0.1em 0.25em;
 }
 
-.DocSyncPreview dl {
-  background: #ddedfd;
+.channelAccess, .DocSyncPreview dl {
   padding: 0.1em 0.25em;
   margin: 0.25em;
 }
 
-.ChannelGrid {
-/*  width: 100%;
-  overflow-x:scroll;*/
+.DocSyncPreview dl {
+  background: #ddedfd;
 }
 
 .ChannelGrid>ul {
@@ -196,6 +194,8 @@ a:hover {
 
 .watched {
   font-weight: bold;
+  /*color: #012345;*/
+  color: #2463b7;
 }
 
 .SyncFunctionView {

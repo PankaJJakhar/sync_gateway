@@ -78,15 +78,14 @@ window.ChannelInfoPage = React.createClass({
     return (
       <div>
         <h2>Channel Info: {name}</h2>
-
-        <ChangeList channel={this.state.channel} db={db}></ChangeList>
-
+        <div className="channelDocs">
+          <h3>Recent Updates</h3>
+          <ChangeList channel={this.state.channel} db={db}></ChangeList>
+        </div>
+        <div className="channelAccess">
         <h3>Access Control: Readers</h3>
         {access && <ul>{access}</ul>}
-        {
-          (db && name) &&
-            <a target="_new" href={"/"+db+"/_dumpchannel/"+name}>Dump</a>
-        }
+        </div>
       </div>
       )
     /*jshint ignore:end */
@@ -141,7 +140,7 @@ var ChangeList = React.createClass({
     console.log("ChangeList", channel)
     return (
       <div className="ChangeList">
-      <strong><a href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a></strong>
+      <a className="watched" href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a>
     <ul>
       {channel.changes.map(function(ch){
         var isAccess = channel.access[ch[0]] && "isAccess";
@@ -179,7 +178,7 @@ window.RecentChannels = React.createClass({
       {this.state.channelNames.map(function(ch) {
         var isWatched = watch.indexOf(ch) !== -1
         return <li key={ch+isWatched}>
-          <a className={isWatched && "active"} href={hrefToggleWatchingChannel(this.state.db, ch, currentLoc)}>
+          <a className={isWatched && "watched"} href={hrefToggleWatchingChannel(this.state.db, ch, currentLoc)}>
             {ch}
           </a>
           </li>;

@@ -1,4 +1,8 @@
 
+function runSyncFunction(code, doc, oldDoc, userCtx) {
+  return doc;
+}
+
 var docAccessMap = {};
 function getDocAccessMap(db, done) {
   sg.get([db, "_view", "access"], function(err, data) {

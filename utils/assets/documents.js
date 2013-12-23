@@ -110,7 +110,11 @@ window.DocInfo = React.createClass({
       sg.get([props.db, "_raw", props.docID], function(err, data) {
         var sync = data._sync;
         delete data._sync;
-        this.setState({doc : data, sync: sync, docID : props.docID, db : props.db})
+        var state = {doc : data, sync: sync, docID : props.docID, db : props.db};
+        if (this.props.syncFunctionCode) {
+          state.preview = runSyncFunction(this.props.syncFunctionCode, data)
+        }
+        this.setState(state);
       }.bind(this))
     } else {
       this.setState(this.getInitialState())
