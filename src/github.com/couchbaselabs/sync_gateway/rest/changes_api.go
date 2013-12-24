@@ -141,8 +141,11 @@ func (h *handler) sendSimpleChanges(channels base.Set, options db.ChangesOptions
 				} else {
 					h.response.Write([]byte(","))
 				}
-				encoder.Encode(entry)
-				lastSeqID = entry.Seq
+				if nil != entry {
+					encoder.Encode(entry)
+					lastSeqID = entry.Seq
+				}
+
 			case <-heartbeat:
 				_, err = h.response.Write([]byte("\n"))
 				h.flush()
