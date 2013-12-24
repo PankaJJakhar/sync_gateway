@@ -27,9 +27,10 @@ window.DbInfoPage = React.createClass({
     var db = this.state.db;
     console.log(info.config.sync)
     /*jshint ignore:start */
+    // <p>{db} has {info.doc_count} docs. {info.update_seq} updates.</p>
     return (
       <div>
-        <p>{db} has {info.doc_count} docs. {info.update_seq} updates.</p>
+
         <SyncFunctionView db={db} code={info.config.sync}/>
       </div>
       )
@@ -87,17 +88,21 @@ var SyncFunctionView = React.createClass({
   render : function() {
     console.log("SyncFunctionView", this.state, this.props)
     return <div className="SyncFunctionView">
-      <h3>Sync Function</h3>
       <div className="SyncFunctionCode">
         <textarea ref="syncCode" value={this.state.code || this.props.code}/>
       </div>
+      <p>The <strong>Sync Function</strong> determines application-specific behavior regarding who can see and modify which documents. The code you write here can validate updates, route documents to channels, and grant access privileges  to users and groups on a per-channel basis. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function API documentation.</a></p>
+      <p>Try some examples:
+      <ul className="defaults">
+      <li><a onClick={this.handleExampleClick.bind(this, "basic")}>basic</a> - {"the default Sync Function used when the application doesn't specify one"}</li>
+      <li>personal data - just sync my data to my devices, no sharing</li>
+      <li>social rooms - todos, chat, photo sharing, can all use a room membership model.</li>
+      </ul>
 
-      <p>This code determines Sync Gateway application behavior. It can validate document updates, route documents to channels, and grant access to users and groups to read from channels. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function documentation.</a></p>
-      <p>Examples: <a onClick={this.handleExampleClick.bind(this, "basic")}>basic</a></p>
-      <h3>Preview Sync Results</h3>
-      <p>This preview shows the channel mapping and access control output of the sync function based on a document in your database.</p>
-      <p><a onClick={this.handleRandomDoc}>Select a random document.</a>{" "}
-      <a onClick={this.handleRandomAccessDoc}>Select a random document that has access control output.</a></p>
+      </p>
+      <h3>Preview Your Sync Results</h3>
+      <p>This preview shows the channel mapping and access control output of the sync function based on documents in your database. <a onClick={this.handleRandomDoc}>Select a random document.</a>{" "}
+      <a onClick={this.handleRandomAccessDoc}>Select a random document that has access control output.</a> <a href=""> Make the current document editable.</a></p>
       <DocInfo db={this.props.db} docID={this.state.docID}/>
     </div>
   }
