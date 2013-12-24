@@ -88,9 +88,10 @@ var SyncFunctionView = React.createClass({
   render : function() {
     console.log("SyncFunctionView", this.state, this.props)
     return <div className="SyncFunctionView">
-      <div className="SyncFunctionCode">
+      <form className="SyncFunctionCode">
         <textarea ref="syncCode" value={this.state.code || this.props.code}/>
-      </div>
+        <button>Start Preview Mode</button> <button>Deploy Live</button>
+      </form>
       <p>The <strong>Sync Function</strong> determines application-specific behavior regarding who can see and modify which documents. The code you write here can validate updates, route documents to channels, and grant access privileges  to users and groups on a per-channel basis. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function API documentation.</a></p>
       <p>Try some examples:
       <ul className="defaults">

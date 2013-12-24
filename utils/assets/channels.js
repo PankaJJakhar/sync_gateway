@@ -174,7 +174,7 @@ window.RecentChannels = React.createClass({
     /*jshint ignore:start */
     return (<div className="RecentChannels">
       <strong>{this.state.channelNames.length} channels</strong>.
-      Select channels to watch updates.
+      Select channels to watch updates. <a href={"/"+this.props.db+"/_changes?limit=5"}>raw</a>
       <ul>
       {this.state.channelNames.map(function(ch) {
         var isWatched = watch.indexOf(ch) !== -1
