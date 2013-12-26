@@ -231,7 +231,6 @@ a:hover {
 .SyncFunctionCode {
   float: right;
   width:50%;
-  height: 24em;
   padding:1em;
   background: #ebebeb;
 }
@@ -239,7 +238,7 @@ a:hover {
 
 .SyncFunctionView textarea {
   font-size: 1em;
-  width: 100%; height: 100%;
+  width: 100%; height: 20em;
   padding: 0.25em;
   background: #fefefe;
 

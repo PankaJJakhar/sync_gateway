@@ -155,12 +155,12 @@ func (h *handler) handleDump() error {
 func (h *handler) handleView() error {
 	viewName := h.PathVar("view")
 	base.LogTo("HTTP", "JSON view %q", viewName)
-	opts := db.Body{
-		"stale": h.getBoolQuery("stale"),
-		"reduce": h.getBoolQuery("reduce"),
-		"start_key" : h.getQuery("start_key"),
-		"end_key" : h.getQuery("end_key"),
-		"group_level" : h.getIntQuery("group_level", 1),
+	opts := db.Body{ // for now we always return the full result set
+		// "stale": h.getBoolQuery("stale"),
+		// "reduce": h.getBoolQuery("reduce"),
+		// "startkey" : h.getQuery("startkey"),
+		// "endkey" : h.getQuery("endkey"),
+		// "group_level" : h.getIntQuery("group_level", 1),
 	}
 	result, err := h.db.Bucket.View("sync_gateway", viewName, opts)
 	if err != nil {

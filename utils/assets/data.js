@@ -1,3 +1,37 @@
+var dbStateSingletons = {};
+window.SyncStateForDatabase = function(db) {
+  var state = dbStateSingletons[db]
+  if (!state) {
+    state = new SyncState(db)
+    dbStateSingletons[db] = state
+  }
+  return state
+}
+
+function SyncState(db, syncFun) {
+  this.db = db;
+  // initially populated by view queries
+  this.deployedChannels = {
+    /*
+    "name" : {
+      changes : [{id: docid, seq:num}],
+      access : {
+        "docid" : [userid, userid, roleid, ...]
+      }
+    }
+    */
+  };
+  // only populated by changes processed by the syncFun locally
+  this.previewChannels = {};
+  this.deployedDocs = {};
+  this.deployedUsers = {};
+  this.setSyncFunction(syncFun);
+}
+
+SyncState.prototype.setSyncFunction = function(syncFun) {
+  // if there are preview docs, run them
+};
+
 
 function runSyncFunction(code, doc, oldDoc, userCtx) {
   return doc;
