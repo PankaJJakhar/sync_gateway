@@ -170,13 +170,13 @@ a:hover {
   display: inline-flex;
 }
 
-.UserChannels li, .ChangeList li {
+.UserChannels li, .ChannelChanges li {
   background: #ddedfd;
   margin:.25em;
   padding:.25em;
 }
 
-.ChangeList li.isAccess {
+.ChannelChanges li.isAccess {
   background: #fdf5cc;
 }
 

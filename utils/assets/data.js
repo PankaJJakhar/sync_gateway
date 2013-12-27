@@ -1,178 +1,131 @@
 var events = require('events'),
   coax = require("coax");
 
-// if (typeof window == "undefined" && module && module.exports) {
-//   window = module.exports
-// }
-
 var dbStateSingletons = {};
-exports.SyncStateForDatabase = function(db, syncFun) {
+exports.SyncStateForDatabase = function(db) {
   var state = dbStateSingletons[db]
   if (!state) {
-    state = new SyncState(db, syncFun)
+    state = new SyncState(db)
     dbStateSingletons[db] = state
   }
   return state
 }
 
-function SyncState(db, syncFun) {
-  this.db = db;
-  this.client = coax(db);
-  // initially populated by view queries
+function SyncState(db) {
+  // setup on / emit / etc
   events.EventEmitter.call(this);
 
-  this.deployedChannels = {
+  // public state
+  this.db = db;
+  this.pageSize = 100
+
+  // private state
+  var previewFun, self=this, client = coax(db),
+    dbInfo = {}, previewChannels = {};
     /*
-    "name" : {
-      changes : [{id: docid, seq:num}],
-      access : {
-        "docid" : [userid, userid, roleid, ...]
+      "name" : {
+        docs : {"docid" : seq},
+        access : {
+          "docid" : [userid, userid, roleid, ...]
+        }
       }
-    }
     */
+
+
+  // pubic methods
+  this.setSyncFunction = function(funCode) {
+    previewChannels = {};
+    previewFun = compileSyncFunction(funCode)
+    loadChangesHistory()
   };
-  // only populated by changes processed by the syncFun locally
-  this.previewChannels = {};
-  this.deployedDocs = {};
-  this.deployedUsers = {};
+  this.channelNames = function() {
+    return Object.keys(previewChannels);
+  }
+  this.channel = function(name) {
+    var changes = [], revs ={}, chan = previewChannels[name];
+    if (!chan) return {name:name, changes:[]};
+    var docs = chan.docs;
 
-  this.pageSize = 100;
+    for (var id in docs) revs[docs[id]] = id
+    var rs = Object.keys(revs).sort(function(a, b){
+      return parseInt(a) - parseInt(b);
+    })
+    for (var i = rs.length - 1; i >= 0; i--) {
+      var docid = revs[rs[i]]
+      changes.push({id:docid, seq:parseInt(rs[i])})
+    }
+    var result = {
+      name : name,
+      changes : changes
+    }
+    if (Object.keys(chan.access).length) {result.access = chan.access}
+    return result
+  }
 
-  this.setSyncFunction(syncFun || "function(doc){\n  channel(doc.channels)\n}");
+  // private implementation
+  function runSyncFunction(doc, seq) {
+    // console.log('previewFun', doc)
+    var sync = previewFun(doc, false, null)
+    // console.log('previewFun', doc._id, doc, sync)
+    if (sync.reject) {
+      console.error("update rejected by sync function", doc, sync)
+    }
+    sync.channels.forEach(function(ch) {
+      previewChannels[ch] = previewChannels[ch] || {docs : {}, access:{}};
+      previewChannels[ch].docs[doc._id] = seq;
+    })
+    sync.access.forEach(function(acc) {
+      acc.channels.forEach(function(ch){
+        previewChannels[ch] = previewChannels[ch] || {docs : {}, access:{}};
+        previewChannels[ch].access[doc._id] =
+          mergeUsers(previewChannels[ch].access[doc._id], acc.users);
+      })
+    })
+  }
 
-  // this.loadDeployedData();
-  this._loadChangeHistory();
+  function mergeUsers(existing, more) {
+    var keys = {};
+    existing = existing || [];
+    for (var i = existing.length - 1; i >= 0; i--) {
+      keys[existing[i]] = true;
+    };
+    for (i = more.length - 1; i >= 0; i--) {
+      keys[more[i]] = true;
+    };
+    return Object.keys(keys)
+  }
+
+  function loadChangesHistory(){
+    // get first page
+    client.get(["_changes", {include_docs : true}], function(err, data) {
+      // console.log("history", data)
+      data.results.forEach(onChange)
+      self.emit("batch")
+    })
+  }
+
+  function onChange(ch) {
+    var seq = parseInt(ch.seq.split(":")[1])
+    // console.log("onChange", seq, ch)
+    if (!ch.doc) {
+      console.log("no doc", ch)
+      return;
+    }
+    runSyncFunction(ch.doc, seq)
+    self.emit("change", ch)
+  }
+
+  client.get("_info", function(err, info) {
+    if (err) throw(err);
+    dbInfo = info;
+    self.setSyncFunction(info.config.sync || "function(doc){\n  channel(doc.channels)\n}");
+  })
 }
 
 SyncState.prototype.__proto__ = events.EventEmitter.prototype;
 
 
-function compileSyncFunction(syncCode) {
-  return function(newDoc, oldDoc, realUserCtx) {
-    // var syncFun;
-    // todo: cache the value of eval on a per userCtx basis
-    // (especially optimize this in sync gateway)
-    var evalString = "var syncFun = ("+ syncCode+")"
-    // console.log("evalString", evalString)
 
-    eval(evalString)
-
-    function makeArray(maybeArray) {
-      if (Array.isArray(maybeArray)) {
-        return maybeArray;
-      } else {
-        return [maybeArray];
-      }
-    }
-
-    function inArray(string, array) {
-      return array.indexOf(string) != -1;
-    }
-
-    function anyInArray(any, array) {
-      for (var i = 0; i < any.length; ++i) {
-        if (inArray(any[i], array))
-          return true;
-      }
-      return false;
-    }
-
-    // Proxy userCtx that allows queries but not direct access to user/roles:
-    var shouldValidate = (realUserCtx !== null && realUserCtx.name !== null);
-
-    function requireUser(names) {
-        if (!shouldValidate) return;
-        names = makeArray(names);
-        if (!inArray(realUserCtx.name, names))
-          throw({forbidden: "wrong user"});
-    }
-
-    function requireRole(roles) {
-        if (!shouldValidate) return;
-        roles = makeArray(roles);
-        if (!anyInArray(realUserCtx.roles, roles))
-          throw({forbidden: "missing role"});
-    }
-
-    function requireAccess(channels) {
-        if (!shouldValidate) return;
-        channels = makeArray(channels);
-        if (!anyInArray(realUserCtx.channels, channels))
-          throw({forbidden: "missing channel access"});
-    }
-    var results = {
-      channels : [],
-      access : []
-    };
-    function channel(){
-      var args = Array.prototype.slice.apply(arguments);
-      results.channels = Array.prototype.concat.apply(results.channels, args);
-    }
-
-    try {
-      syncFun(newDoc, oldDoc);
-    } catch(x) {
-      if (x.forbidden)
-        reject(403, x.forbidden);
-      else if (x.unauthorized)
-        reject(401, x.unauthorized);
-      else
-        throw(x);
-    }
-    return results;
-  }
-}
-
-SyncState.prototype.channel = function(name) {
-  var changes = [], revs ={}, docs = this.previewChannels[name];
-  for (var id in docs) revs[docs[id]] = id
-  var rs = Object.keys(revs).sort(function(a, b){
-    return parseInt(a) - parseInt(b);
-  })
-  for (var i = rs.length - 1; i >= 0; i--) {
-    var docid = revs[rs[i]]
-    changes.push({id:docid, seq:parseInt(rs[i])})
-  }
-  return {
-    name : name,
-    changes : changes
-  }
-}
-SyncState.prototype.setSyncFunction = function(syncFun) {
-  this.syncFun = compileSyncFunction(syncFun)
-};
-
-SyncState.prototype._runSyncFunction = function(doc) {
-  return this.syncFun(doc, false, {})
-}
-
-SyncState.prototype._onChange = function(ch) {
-  // console.log("change", ch)
-  var preview = this._runSyncFunction(ch.doc)
-  var seq = parseInt(ch.seq.split(":")[1])
-  // console.log("results", results)
-  this._integratePreview(seq, ch.id, preview);
-  this.emit("change", ch)
-}
-
-SyncState.prototype._integratePreview = function(seq, docid, sync) {
-  sync.channels.forEach(function(ch) {
-    this.previewChannels[ch] = this.previewChannels[ch] || {}
-    this.previewChannels[ch][docid] = seq;
-  }.bind(this))
-}
-
-
-SyncState.prototype._loadChangeHistory = function() {
-  // get first page
-  this.client.get(["_changes", {limit : 20, include_docs : true}], function(err, data) {
-    data.results.forEach(this._onChange.bind(this))
-  }.bind(this))
-};
-
-// function runSyncFunction(code, doc, oldDoc, userCtx) {
-//   return doc;
-// }
 
 // var docAccessMap = {};
 // function getDocAccessMap(db, done) {
@@ -330,3 +283,90 @@ SyncState.prototype._loadChangeHistory = function() {
 // //     })
 
 // //   }
+
+
+var syncWrapper = function(newDoc, oldDoc, realUserCtx) {
+  syncCodeStringHere
+
+  function makeArray(maybeArray) {
+    if (Array.isArray(maybeArray)) {
+      return maybeArray;
+    } else {
+      return [maybeArray];
+    }
+  }
+
+  function inArray(string, array) {
+    return array.indexOf(string) != -1;
+  }
+
+  function anyInArray(any, array) {
+    for (var i = 0; i < any.length; ++i) {
+      if (inArray(any[i], array))
+        return true;
+    }
+    return false;
+  }
+
+  // Proxy userCtx that allows queries but not direct access to user/roles:
+  var shouldValidate = (realUserCtx !== null && realUserCtx.name !== null);
+
+  function requireUser(names) {
+      if (!shouldValidate) return;
+      names = makeArray(names);
+      if (!inArray(realUserCtx.name, names))
+        throw({forbidden: "wrong user"});
+  }
+
+  function requireRole(roles) {
+      if (!shouldValidate) return;
+      roles = makeArray(roles);
+      if (!anyInArray(realUserCtx.roles, roles))
+        throw({forbidden: "missing role"});
+  }
+
+  function requireAccess(channels) {
+      if (!shouldValidate) return;
+      channels = makeArray(channels);
+      if (!anyInArray(realUserCtx.channels, channels))
+        throw({forbidden: "missing channel access"});
+  }
+  var results = {
+    channels : [],
+    access : [],
+    reject : false
+  };
+  function channel(){
+    var args = Array.prototype.slice.apply(arguments);
+    results.channels = Array.prototype.concat.apply(results.channels, args);
+  }
+  function access(users, channels){
+    results.access.push({
+      users : makeArray(users),
+      channels : makeArray(channels)
+    })
+  }
+  function reject(code, message) {
+    results.reject = [code, message];
+  }
+  try {
+    // console.log("syncFun", newDoc)
+    syncFun(newDoc, oldDoc);
+  } catch(x) {
+    if (x.forbidden)
+      reject(403, x.forbidden);
+    else if (x.unauthorized)
+      reject(401, x.unauthorized);
+    else
+      throw(x);
+  }
+  return results;
+}.toString();
+
+function compileSyncFunction(syncCode) {
+  var codeString = "var syncFun = ("+ syncCode+")",
+    wrappedCode = syncWrapper.replace("syncCodeStringHere", codeString),
+    evalString = "var compiledFunction = ("+ wrappedCode+")";
+  eval(evalString);
+  return compiledFunction;
+}

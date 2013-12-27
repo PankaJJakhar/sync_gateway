@@ -1,8 +1,5 @@
 /** @jsx React.DOM */
 
-
-var coax = require("coax"), sg = coax(location.origin);
-
 function hrefToggleWatchingChannel(db, chName, current) {
   var channels = [];
   var urlparts = current.split("?");
@@ -43,14 +40,14 @@ window.ChannelInfoPage = React.createClass({
         });
         console.log("usersForChannel", usersForChannel)
 
-        var watcher = channelWatcher(props.db)
-        watcher.onChange("ChannelsGridPage", function(change) {
-          this.setState({
-            channel : watcher.channels([props.id])[0],
-            access : usersForChannel,
-            name : props.id,
-            db : props.db})
-        }.bind(this))
+        // var watcher = channelWatcher(props.db)
+        // watcher.onChange("ChannelsGridPage", function(change) {
+        //   this.setState({
+        //     channel : watcher.channels([props.id])[0],
+        //     access : usersForChannel,
+        //     name : props.id,
+        //     db : props.db})
+        // }.bind(this))
 
       }.bind(this))
     } else {
@@ -80,7 +77,7 @@ window.ChannelInfoPage = React.createClass({
         <h2>Channel Info: {name}</h2>
         <div className="channelDocs">
           <h3>Recent Updates</h3>
-          <ChangeList channel={this.state.channel} db={db}></ChangeList>
+          <ChannelChanges channel={this.state.channel} db={db}></ChannelChanges>
         </div>
         <div className="channelAccess">
         <h3>Access Control: Readers</h3>
@@ -97,14 +94,14 @@ window.ChannelsGridPage = React.createClass({
     return {channels: [], db : this.props.db};
   },
   setStateForProps: function(props) {
-    var watcher = channelWatcher(props.db)
-    console.log("componentWillMount ChannelsGridPage", props, watcher)
-    watcher.onChange("ChannelsGridPage", function(change) {
-      this.setState({
-        channels : watcher.channels(props.watch),
-        db : props.db
-      })
-    }.bind(this))
+    // var watcher = channelWatcher(props.db)
+    // console.log("componentWillMount ChannelsGridPage", props, watcher)
+    // watcher.onChange("ChannelsGridPage", function(change) {
+    //   this.setState({
+    //     channels : watcher.channels(props.watch),
+    //     db : props.db
+    //   })
+    // }.bind(this))
   },
   componentWillReceiveProps: function(newProps) {
     // console.log("componentWillReceiveProps")
@@ -115,16 +112,17 @@ window.ChannelsGridPage = React.createClass({
     this.setStateForProps(this.props)
   },
   render : function(){
-    var channels = this.state.channels;
-    var db = this.state.db,
+    var channels = this.props.watch;
+    var db = this.props.db,
       title = this.props.title || "Watch Channels";
+
     return (
       <div className="ChannelGrid">
       <h2>{title}</h2>
       <RecentChannels db={db} watch={this.props.watch}/>
       <ul>
       {channels.map(function(ch){
-        return <li><ChangeList channel={ch} db={db}></ChangeList></li>
+        return <li><ChannelChanges channel={ch} db={db}></ChannelChanges></li>
       })}
       </ul>
       </div>
@@ -133,57 +131,83 @@ window.ChannelsGridPage = React.createClass({
   }
 })
 
-var ChangeList = React.createClass({
+var ChannelChanges = React.createClass({
+  getInitialState: function() {
+    return {channel: {}, db : this.props.db};
+  },
+  setStateForProps: function(props) {
+    var myState = dbState(props.db)
+    console.log("setStateForProps ChannelChanges")
+    myState.on("change", function(){
+      this.setState({
+        channel : myState.channel(props.channel)
+      })
+    }.bind(this))
+    this.setState({channel : myState.channel(props.channel)})
+  },
+  componentWillReceiveProps: function(newProps) {
+    this.setStateForProps(newProps)
+  },
+  componentWillMount: function() {
+    this.setStateForProps(this.props)
+  },
   render : function() {
-    var channel = this.props.channel;
-    var db = this.props.db;
-    console.log("ChangeList", channel)
+    var channel = this.state.channel;
+    var db = this.state.db;
+    console.log("ChannelChanges", this.props.channel, channel)
     return (
-      <div className="ChangeList">
+      <div className="ChannelChanges">
       <a className="watched" href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a>
       {!channel.access && " (no access grants)"}
     <ul>
       {channel.changes.map(function(ch){
-        var isAccess = channel.access && channel.access[ch[0]] && "isAccess";
-        return <li className={isAccess}>{ch[1]} : <a href={dbLink(db, "documents/"+ch[0])}>{ch[0]}</a></li>
+        var isAccess = channel.access && channel.access[ch.id] && "isAccess";
+        return <li className={isAccess}>{ch.seq} : <a href={dbLink(db, "documents/"+ch.id)}>{ch.id}</a></li>
       })}
     </ul></div>
           );
-  }});
-
-
-
+  }
+});
 
 window.RecentChannels = React.createClass({
   getInitialState: function() {
     return {channelNames: [], db : this.props.db};
   },
-  componentWillMount: function() {
-    var watcher = channelWatcher(this.props.db)
-    console.log("componentWillMount RecentChannels", this.props, watcher)
-    watcher.onChange("RecentChannels", function(change) {
-      this.setState({
-        channelNames : watcher.channelNames(),
-        db : this.props.db
-      })
+  setStateForProps: function(props) {
+    var myState = dbState(props.db)
+    console.log("setStateForProps RecentChannels")
+    myState.on("change", function(){
+      var newNames = myState.channelNames();
+      this.setState({channelNames:newNames})
     }.bind(this))
+    this.setState({channelNames:myState.channelNames()})
+  },
+  componentWillReceiveProps: function(newProps) {
+    this.setStateForProps(newProps)
+  },
+  componentWillMount: function() {
+    this.setStateForProps(this.props)
   },
   render : function() {
+    console.log("render RecentChannels", this.state, this.props)
+
     var watch = this.props.watch || [],
-      currentLoc = location.toString();
+      currentLoc = location.toString(),
+      channelNames = this.state.channelNames,
+      db = this.state.db;
     /*jshint ignore:start */
     return (<div className="RecentChannels">
-      <strong>{this.state.channelNames.length} channels</strong>.
-      Select channels to watch updates. <a href={"/"+this.props.db+"/_changes?limit=5"}>raw</a>
+      <strong>{channelNames.length} channels</strong>.
+      Select channels to watch updates. <a href={"/"+db+"/_changes?limit=5"}>raw</a>
       <ul>
       {this.state.channelNames.map(function(ch) {
         var isWatched = watch.indexOf(ch) !== -1
         return <li key={ch+isWatched}>
-          <a className={isWatched && "watched"} href={hrefToggleWatchingChannel(this.state.db, ch, currentLoc)}>
+          <a className={isWatched && "watched"} href={hrefToggleWatchingChannel(db, ch, currentLoc)}>
             {ch}
           </a>
           </li>;
-      }.bind(this))}
+      })}
     </ul></div>)
     /*jshint ignore:end */
   }

@@ -2,7 +2,10 @@
  * @jsx React.DOM
  */
 
-console.log("app.js")
+var coax = require("coax"), sg = coax(location.origin),
+  syncState = require("syncState");
+
+console.log("syncState",syncState)
 
 Davis.$ = Zepto;
 
@@ -21,9 +24,16 @@ function dbLink(db, path) {
   return base
 }
 
+function dbState(db) {
+  // console.log("dbState",sg(db).url)
+  return syncState.SyncStateForDatabase(sg(db).url.toString())
+}
+
 var app = Davis(function() {
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;
+
+
 
   this.bind("routeNotFound", function(r) {
     console.error("routeNotFound", r.path);

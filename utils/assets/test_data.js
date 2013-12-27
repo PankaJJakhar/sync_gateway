@@ -39,7 +39,11 @@ function setUp() {
         channels : ["yakima", "zoo"]
       }, {
         _id : "cat",
-        channels : ["claws"]
+        channels : ["claws"],
+        grant : {
+          user : "kitty",
+          channels : ["claws", "xylophone"]
+        }
       }]
     }, function(err, ok){
       // console.log("posted docs", err, ok)
@@ -55,14 +59,14 @@ function initData() {
   var next = getNext(arguments);
   console.log("initData",hostname+db_name)
   dbState = syncState.SyncStateForDatabase(hostname+db_name)
-  console.log("dbState", dbState)
+  // console.log("dbState", dbState)
   var changeHandler = function(change) {
-    console.log("change", change.id)
+    // console.log("change", change.id)
     assert.notEqual(change.id, "cat", "we called removeListener")
     if (change.id == "booth") {
-      console.log("booth")
+      // console.log("booth")
       var chan = dbState.channel("yakima")
-      console.log("chan yakima", chan);
+      // console.log("chan yakima", chan);
       dbState.removeListener("change",changeHandler)
       next()
     }
@@ -77,9 +81,33 @@ function runPreview() {
   assert.ok(chan.changes, "has changes")
   assert.equal(chan.changes[0].id, "booth")
   assert.equal(chan.changes[1].id, "ace")
+  var names = dbState.channelNames();
+  // console.log("names", names)
+  assert.equal(names.length, 3, '"xylophone", "yakima", "zoo"')
   next()
 }
 
-setUp(initData, runPreview)
+function testAccess() {
+  var next = getNext(arguments);
+  console.log("testAccess")
+  var chan = dbState.channel("xylophone")
+  assert.equal(Object.keys(chan.access).length, 0, "no access yet")
+  next();
+};
+
+function testUpdateSyncCode(){
+  var next = getNext(arguments);
+  console.log("testUpdateSyncCode")
+  dbState.setSyncFunction("function(doc){ channel(doc.channels); if (doc.grant) {access(doc.grant.user, doc.grant.channels)} }")
+  dbState.on("batch", function(){
+    var chan = dbState.channel("xylophone")
+    console.log(chan)
+    assert.ok(chan.access, "access")
+  })
+
+  next();
+}
+
+setUp(initData, runPreview, testAccess, testUpdateSyncCode)
 
 
