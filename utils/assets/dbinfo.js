@@ -88,10 +88,6 @@ var SyncFunctionView = React.createClass({
   render : function() {
     console.log("SyncFunctionView", this.state, this.props)
     return <div className="SyncFunctionView">
-      <form className="SyncFunctionCode">
-        <textarea ref="syncCode" value={this.state.code || this.props.code}/>
-        <button>Start Preview Mode</button> <button>Deploy Live</button>
-      </form>
       <p>The <strong>Sync Function</strong> determines application-specific behavior regarding who can see and modify which documents. The code you write here can validate updates, route documents to channels, and grant access privileges  to users and groups on a per-channel basis. For more information <a href="http://docs.couchbase.com/sync-gateway/#sync-function-api">see the Sync Function API documentation.</a></p>
       <p>Try some examples:
       <ul className="defaults">
@@ -99,12 +95,21 @@ var SyncFunctionView = React.createClass({
       <li>personal data - just sync my data to my devices, no sharing</li>
       <li>social rooms - todos, chat, photo sharing, can all use a room membership model.</li>
       </ul>
-
       </p>
+
+      <div className="SyncFunctionPreview">
+        <form className="SyncFunctionCode">
+          <textarea ref="syncCode" value={this.state.code || this.props.code}/>
+          <button>Live Preview Mode</button> <button>Deploy To Server</button>
+        </form>
+        <div className="DocPreview">
+          <DocInfo db={this.props.db} docID={this.state.docID}/>
+        </div>
+      </div>
+
       <h3>Preview Your Sync Results</h3>
       <p>This preview shows the channel mapping and access control output of the sync function based on documents in your database. <a onClick={this.handleRandomDoc}>Select a random document.</a>{" "}
       <a onClick={this.handleRandomAccessDoc}>Select a random document that has access control output.</a> <a href=""> Make the current document editable.</a></p>
-      <DocInfo db={this.props.db} docID={this.state.docID}/>
     </div>
   }
 })

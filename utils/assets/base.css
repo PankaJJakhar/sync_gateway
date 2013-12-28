@@ -115,6 +115,8 @@ a:hover {
   position: fixed;
   top:0;
   left: 0;
+  width: 100%;
+  height:2em;
   padding: 0 0.5em;
   background: rgba(255, 255, 255, 0.8);
 }
@@ -124,7 +126,10 @@ a:hover {
 }
 
 /* layout */
-
+.SyncFunctionPreview {
+  background: #efe;
+  width: 100%
+}
 
 .DocInfo {
   /*background: #bbb;*/
