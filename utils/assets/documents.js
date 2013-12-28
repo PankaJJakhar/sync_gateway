@@ -67,12 +67,13 @@ window.DocSyncPreview = React.createClass({
   },
   render : function() {
     var sync = this.props.sync;
+    console.log("sync", sync)
     var db = this.props.db;
     if (!sync) return <div></div>;
     var channels = sync.channels;
     var accessList = []
     for (var ch in sync.access) {
-      accessList.push([ch,sync.access[ch]])
+      accessList.push({name:ch, users:sync.access[ch]})
     }
     return <div className="DocSyncPreview">
       <div className="channels">
@@ -87,8 +88,8 @@ window.DocSyncPreview = React.createClass({
         <h4>Access</h4>
         <dl>
         {accessList.map(function(ch) {
-          return <span><dt>{channelLink(db, ch[0])}</dt>
-                      {ch[1].map(function(who){
+          return <span><dt>{channelLink(db, ch.name)}</dt>
+                      {ch.users.map(function(who){
                               return <dd>{userLink(db, who)}</dd>
                             })}</span>
         })}

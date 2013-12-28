@@ -157,7 +157,7 @@ func (h *handler) handleView() error {
 	base.LogTo("HTTP", "JSON view %q", viewName)
 	opts := db.Body{ // for now we always return the full result set
 		// "stale": h.getBoolQuery("stale"),
-		// "reduce": h.getBoolQuery("reduce"),
+		"reduce": false,
 		// "startkey" : h.getQuery("startkey"),
 		// "endkey" : h.getQuery("endkey"),
 		// "group_level" : h.getIntQuery("group_level", 1),

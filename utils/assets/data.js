@@ -86,23 +86,34 @@ function SyncState(db) {
   this.getDoc = function(id, cb){
     client.get(["_raw", id], function(err, raw) {
       if (err) {return cb(err);}
-      var sync = raw._sync;
+      var deployed = raw._sync;
       delete raw._sync;
       var previewSet = {}
       var preview = runSyncFunction(previewSet, id, raw, 0)
 
-      // console.log("previewSet", previewSet)
+      console.log("deployed.access", deployed.access)
 
-      getDocAccessMap(function(err, accessMap) {
-        cb(raw, {
-          access : accessMap[id],
-          channels : Object.keys(sync.channels)
-        }, transformPreview(id, preview))
-      })
+      cb(raw, transformDeployed(id, deployed), transformPreview(id, preview))
     });
   }
 
   // private implementation
+  function transformDeployed(id, deployed){
+    var access = {};
+    for (var user in deployed.access) {
+      var chans = Object.keys(deployed.access[user])
+      chans.forEach(function(ch){
+        access[ch] = access[ch] || []
+        access[ch].push(user)
+        access[ch] = access[ch].sort()
+      })
+    }
+    return {
+      access : access,
+      channels : Object.keys(deployed.channels)
+    }
+  }
+
   function transformPreview(id, preview) {
     // console.log("preview", preview)
     var channelSet = {}
@@ -113,7 +124,7 @@ function SyncState(db) {
           mergeUsers(channelSet[ch], acc.users);
       })
     })
-    console.log("channelSet", channelSet)
+    console.log("preview.access", channelSet)
     return {
       access : channelSet,
       channels : preview.channels,
@@ -124,6 +135,7 @@ function SyncState(db) {
   function getDocAccessMap(done) {
     var docAccessMap = {};
     client.get(["_view", "access"], function(err, data) {
+      console.log("access", data)
       data.rows.forEach(function(r) {
         for (var ch in r.value) {
           docAccessMap[ch] = docAccessMap[ch] || {}
@@ -166,7 +178,7 @@ function SyncState(db) {
     for (i = more.length - 1; i >= 0; i--) {
       keys[more[i]] = true;
     };
-    return Object.keys(keys)
+    return Object.keys(keys).sort()
   }
 
   function loadChangesHistory(){
