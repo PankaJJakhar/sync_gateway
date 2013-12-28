@@ -158,7 +158,6 @@ var ChannelChanges = React.createClass({
     return (
       <div className="ChannelChanges">
       <a className="watched" href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a>
-      {!channel.access && " (no access grants)"}
     <ul>
       {channel.changes.map(function(ch){
         var isAccess = channel.access && channel.access[ch.id] && "isAccess";

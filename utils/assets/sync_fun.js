@@ -1,6 +1,6 @@
 /** @jsx React.DOM */
 
-window.DbInfoPage = React.createClass({
+window.SyncEditPage = React.createClass({
   getInitialState: function() {
     return {info: {config:{}}, db : this.props.db};
   },
@@ -30,7 +30,6 @@ window.DbInfoPage = React.createClass({
     // <p>{db} has {info.doc_count} docs. {info.update_seq} updates.</p>
     return (
       <div>
-
         <SyncFunctionView db={db} code={info.config.sync}/>
       </div>
       )
@@ -57,30 +56,10 @@ var SyncFunctionView = React.createClass({
     //  = examples["basic"];
   },
   handleRandomAccessDoc : function() {
-    console.log("handleRandomAccessDoc", this.props)
-    getDocAccessMap(this.props.db, function(err, map){
-      var keys = Object.keys(map)
-      var randomChannel = map[keys[Math.floor(Math.random()*keys.length)]];
-      var rKeys = Object.keys(randomChannel)
-      var randomDoc = rKeys[Math.floor(Math.random()*rKeys.length)]
-      var state = this.state;
-      state.docID = randomDoc
-      this.setState(state)
-    }.bind(this))
+    this.setState({docID : dbState(this.props.db).randomAccessDocID()})
   },
   handleRandomDoc : function() {
-    console.log("handleRandomDoc", this.props)
-    var watcher = channelWatcher(this.props.db)
-    watcher.onChange("handleRandomDoc", function(change) {
-      var chs = watcher.channelNames()
-      var ch = chs[Math.floor(Math.random()*chs.length)]
-      var chInfo = watcher.channels([ch])[0];
-      var rIds = Object.keys(chInfo.docs)
-      var randomDoc = rIds[Math.floor(Math.random()*rIds.length)]
-      var state = this.state;
-      state.docID = randomDoc
-      this.setState(state)
-    }.bind(this))
+    this.setState({docID : dbState(this.props.db).randomDocID()})
   },
   componentDidMount : function(){
     this.handleRandomAccessDoc()
@@ -99,17 +78,16 @@ var SyncFunctionView = React.createClass({
 
       <div className="SyncFunctionPreview">
         <form className="SyncFunctionCode">
+          <h3>Sync Function</h3>
           <textarea ref="syncCode" value={this.state.code || this.props.code}/>
           <button>Live Preview Mode</button> <button>Deploy To Server</button>
         </form>
-        <div className="DocPreview">
+        <div className="SyncPreview">
+          Preview sync function output by running your code on real documents. <strong>Select a <a onClick={this.handleRandomDoc}>random document</a> or one that <a onClick={this.handleRandomAccessDoc}>grants access to channels</a>.</strong>
           <DocInfo db={this.props.db} docID={this.state.docID}/>
+          <p>You can compare your channel mapping and access grants with the output of the currently deployed sync function.</p>
         </div>
       </div>
-
-      <h3>Preview Your Sync Results</h3>
-      <p>This preview shows the channel mapping and access control output of the sync function based on documents in your database. <a onClick={this.handleRandomDoc}>Select a random document.</a>{" "}
-      <a onClick={this.handleRandomAccessDoc}>Select a random document that has access control output.</a> <a href=""> Make the current document editable.</a></p>
     </div>
   }
 })

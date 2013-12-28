@@ -91,7 +91,7 @@ function testAccess() {
   var next = getNext(arguments);
   console.log("testAccess")
   var chan = dbState.channel("xylophone")
-  assert.equal(Object.keys(chan.access).length, 0, "no access yet")
+  assert.ok(!chan.access, "no access yet")
   next();
 };
 
@@ -101,13 +101,27 @@ function testUpdateSyncCode(){
   dbState.setSyncFunction("function(doc){ channel(doc.channels); if (doc.grant) {access(doc.grant.user, doc.grant.channels)} }")
   dbState.on("batch", function(){
     var chan = dbState.channel("xylophone")
-    console.log(chan)
     assert.ok(chan.access, "access")
+    next();
   })
-
-  next();
 }
 
-setUp(initData, runPreview, testAccess, testUpdateSyncCode)
+function testRandomDoc() {
+  var next = getNext(arguments);
+  console.log("testRandomDoc")
+  var docid = dbState.randomDocID();
+  assert.ok(["ace", "booth", "cat"].indexOf(docid) !== -1, "testRandomDoc")
+  next()
+}
+
+function testRandomAccessDoc() {
+  var next = getNext(arguments);
+  var docid = dbState.randomAccessDocID();
+  console.log("testRandomAccessDoc")
+  assert.equal(docid, "cat", "testRandomAccessDoc")
+  next()
+}
+
+setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc)
 
 

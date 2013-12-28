@@ -61,6 +61,26 @@ function SyncState(db) {
     if (Object.keys(chan.access).length) {result.access = chan.access}
     return result
   }
+  this.randomAccessDocID = function() {
+    var chs = this.channelNames()
+    chs = shuffleArray(chs);
+    var ch;
+    while (ch = chs.pop()) {
+      var chInfo = this.channel(ch);
+      if (chInfo.access) {
+        var ids = Object.keys(chInfo.access)
+        return ids[Math.floor(Math.random()*ids.length)]
+      }
+    }
+
+  }
+  this.randomDocID = function(){
+    var chs = this.channelNames()
+    var ch = chs[Math.floor(Math.random()*chs.length)]
+    var chInfo = this.channel(ch);
+    var rIds = chInfo.changes.map(function(c){return c.id})
+    return rIds[Math.floor(Math.random()*rIds.length)]
+  }
 
   // private implementation
   function runSyncFunction(doc, seq) {
@@ -69,6 +89,7 @@ function SyncState(db) {
     // console.log('previewFun', doc._id, doc, sync)
     if (sync.reject) {
       console.error("update rejected by sync function", doc, sync)
+      return;
     }
     sync.channels.forEach(function(ch) {
       previewChannels[ch] = previewChannels[ch] || {docs : {}, access:{}};
@@ -284,6 +305,15 @@ SyncState.prototype.__proto__ = events.EventEmitter.prototype;
 
 // //   }
 
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
+}
 
 var syncWrapper = function(newDoc, oldDoc, realUserCtx) {
   syncCodeStringHere

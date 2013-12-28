@@ -45,8 +45,7 @@ var ListDocs = React.createClass({
 var JSONDoc = React.createClass({
   render : function() {
     return <div className="JSONDoc">
-    <h3>JSON Data</h3>
-
+      <h4>{this.props.id||"Loading..."}</h4>
       <pre><code>
       {JSON.stringify(this.props.doc, null, 2)}
       </code></pre>
@@ -80,7 +79,7 @@ var DocSyncPreview = React.createClass({
       accessList.push([ch,Object.keys(access[ch])])
     }
     return <div className="DocSyncPreview">
-    <h3>Sync Output</h3>
+    <h4>Sync Output</h4>
       <dl>
       <dt>Channels</dt>
       {channels.map(function(ch) {
@@ -135,7 +134,6 @@ window.DocInfo = React.createClass({
     return (
       /*jshint ignore:start */
       <div className="DocInfo">
-        <h2>Document: {docID}</h2>
         <JSONDoc doc={doc} id={docID}/>
         <DocSyncPreview db={db} sync={this.state.sync} id={docID}/>
         {clear}

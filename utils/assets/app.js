@@ -61,7 +61,7 @@ var app = Davis(function() {
     this.get('/db/:db', function (req) {
       draw(
         <PageWrap db={req.params.db} page="info">
-          <DbInfoPage db={req.params.db}/>
+          <SyncEditPage db={req.params.db}/>
         </PageWrap>);
     })
 
