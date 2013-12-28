@@ -77,14 +77,17 @@ function initData() {
 function runPreview() {
   var next = getNext(arguments);
   console.log("runPreview")
-  var chan = dbState.channel("yakima")
-  assert.ok(chan.changes, "has changes")
-  assert.equal(chan.changes[0].id, "booth")
-  assert.equal(chan.changes[1].id, "ace")
-  var names = dbState.channelNames();
-  // console.log("names", names)
-  assert.equal(names.length, 3, '"xylophone", "yakima", "zoo"')
-  next()
+  dbState.on("connected", function() {
+    var chan = dbState.channel("yakima")
+    console.log("chan.changes", chan.changes)
+    assert.ok(chan.changes, "has changes")
+    assert.equal(chan.changes[0].id, "booth")
+    assert.equal(chan.changes[1].id, "ace")
+    var names = dbState.channelNames();
+    // console.log("names", names)
+    assert.equal(names.length, 4, '"xylophone", "yakima", "zoo", "claws"')
+    next()
+  })
 }
 
 function testAccess() {
@@ -122,6 +125,19 @@ function testRandomAccessDoc() {
   next()
 }
 
-setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc)
+
+function testGetDoc() {
+  var next = getNext(arguments);
+  var docid = dbState.randomAccessDocID();
+  console.log("testGetDoc")
+  dbState.getDoc(docid, function(doc, deployedSync, previewSync) {
+    assert.equal(JSON.stringify(deployedSync.channels), JSON.stringify(previewSync.channels))
+    assert.notEqual(JSON.stringify(deployedSync.access), JSON.stringify(previewSync.access), "previewing sync function with access calls, over deployed bucket without")
+    next()
+  })
+
+}
+
+setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc, testGetDoc)
 
 

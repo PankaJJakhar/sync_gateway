@@ -42,7 +42,7 @@ var ListDocs = React.createClass({
   }
 })
 
-var JSONDoc = React.createClass({
+window.JSONDoc = React.createClass({
   render : function() {
     return <div className="JSONDoc">
       <h4>{this.props.id||"Loading..."}</h4>
@@ -61,38 +61,39 @@ function userLink(db, user) {
   return <a href={dbLink(db,"users/"+user)}>{user}</a>
 }
 
-var DocSyncPreview = React.createClass({
+window.DocSyncPreview = React.createClass({
+  getDefaultProps : function(){
+    return {sync:{channels:[], access:{}}};
+  },
   render : function() {
     var sync = this.props.sync;
     var db = this.props.db;
-    var channels = Object.keys(sync.channels);
-    var access = {};
-    for (var user in sync.access) {
-      var chans = Object.keys(sync.access[user])
-      chans.forEach(function(ch){
-        access[ch] = access[ch] || {}
-        access[ch][user] = true;
-      })
-    }
+    if (!sync) return <div></div>;
+    var channels = sync.channels;
     var accessList = []
-    for (var ch in access) {
-      accessList.push([ch,Object.keys(access[ch])])
+    for (var ch in sync.access) {
+      accessList.push([ch,sync.access[ch]])
     }
     return <div className="DocSyncPreview">
-    <h4>Sync Output</h4>
-      <dl>
-      <dt>Channels</dt>
-      {channels.map(function(ch) {
-        return <dd>{channelLink(db, ch)}</dd>
-      })}
-      <dt>Access</dt>
-      {accessList.map(function(ch) {
-        return <dd>{channelLink(db, ch[0])}<dl>
-          {ch[1].map(function(who){
-                  return <dd>{userLink(db, who)}</dd>
-                })}</dl></dd>
-      })}
-      </dl>
+      <div className="channels">
+        <h4>Channels</h4>
+        <ul>
+        {channels.map(function(ch) {
+          return <li>{channelLink(db, ch)}</li>
+        })}
+        </ul>
+      </div>
+      <div className="access">
+        <h4>Access</h4>
+        <dl>
+        {accessList.map(function(ch) {
+          return <span><dt>{channelLink(db, ch[0])}</dt>
+                      {ch[1].map(function(who){
+                              return <dd>{userLink(db, who)}</dd>
+                            })}</span>
+        })}
+        </dl>
+      </div>
     </div>;
     }
 })
@@ -101,7 +102,7 @@ var clear = <br className="clear"/>
 
 window.DocInfo = React.createClass({
   getInitialState: function() {
-    return {doc: {}, sync : {channels:{}, access:{}},docID : "", db : false};
+    return {doc: {}, sync : {channels:{}, access:{}}, db : this.props.db};
   },
   setStateForProps : function(props) {
     console.log("setStateForProps", props)
@@ -110,9 +111,9 @@ window.DocInfo = React.createClass({
         var sync = data._sync;
         delete data._sync;
         var state = {doc : data, sync: sync, docID : props.docID, db : props.db};
-        if (this.props.syncFunctionCode) {
-          state.preview = runSyncFunction(this.props.syncFunctionCode, data)
-        }
+        // if (this.props.syncFunctionCode) {
+        //   state.preview = runSyncFunction(this.props.syncFunctionCode, data)
+        // }
         this.setState(state);
       }.bind(this))
     } else {
@@ -121,21 +122,18 @@ window.DocInfo = React.createClass({
     }
   },
   componentWillReceiveProps: function(newProps) {
-    // console.log("componentWillReceiveProps")
     this.setStateForProps(newProps)
   },
   componentWillMount: function() {
-    // console.log("componentWillMount")
     this.setStateForProps(this.props)
   },
   render : function() {
     console.log("DocInfo", this.state)
-    var doc = this.state.doc, docID = this.state.docID, db = this.state.db;
     return (
       /*jshint ignore:start */
       <div className="DocInfo">
-        <JSONDoc doc={doc} id={docID}/>
-        <DocSyncPreview db={db} sync={this.state.sync} id={docID}/>
+        <JSONDoc doc={this.state.doc} id={this.state.docID}/>
+        <DocSyncPreview db={this.state.db} sync={this.state.sync} id={this.state.docID}/>
         {clear}
       </div>
       /*jshint ignore:end */

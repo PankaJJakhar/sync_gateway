@@ -52,16 +52,17 @@ var app = Davis(function() {
 // for my channels in the channels view
   this.scope("/_utils", function() {
     this.get('/', function (req) {
-      draw(<PageWrap page="home">
-        <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
-        <AllDatabases/>
+      draw(
+        <PageWrap page="home">
+          <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
+          <AllDatabases/>
         </PageWrap>)
     })
 
     this.get('/db/:db', function (req) {
       draw(
-        <PageWrap db={req.params.db} page="info">
-          <SyncEditPage db={req.params.db}/>
+        <PageWrap db={req.params.db} page="sync">
+          <SyncPage db={req.params.db}/>
         </PageWrap>);
     })
 

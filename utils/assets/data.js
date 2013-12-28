@@ -41,6 +41,9 @@ function SyncState(db) {
   this.channelNames = function() {
     return Object.keys(previewChannels);
   }
+  this.deployedSyncFunction = function(){
+    return dbInfo.config.sync;
+  }
   this.channel = function(name) {
     var changes = [], revs ={}, chan = previewChannels[name];
     if (!chan) return {name:name, changes:[]};
@@ -72,7 +75,6 @@ function SyncState(db) {
         return ids[Math.floor(Math.random()*ids.length)]
       }
     }
-
   }
   this.randomDocID = function(){
     var chs = this.channelNames()
@@ -81,10 +83,60 @@ function SyncState(db) {
     var rIds = chInfo.changes.map(function(c){return c.id})
     return rIds[Math.floor(Math.random()*rIds.length)]
   }
+  this.getDoc = function(id, cb){
+    client.get(["_raw", id], function(err, raw) {
+      if (err) {return cb(err);}
+      var sync = raw._sync;
+      delete raw._sync;
+      var previewSet = {}
+      var preview = runSyncFunction(previewSet, id, raw, 0)
+
+      // console.log("previewSet", previewSet)
+
+      getDocAccessMap(function(err, accessMap) {
+        cb(raw, {
+          access : accessMap[id],
+          channels : Object.keys(sync.channels)
+        }, transformPreview(id, preview))
+      })
+    });
+  }
 
   // private implementation
-  function runSyncFunction(doc, seq) {
+  function transformPreview(id, preview) {
+    // console.log("preview", preview)
+    var channelSet = {}
+    preview.access.forEach(function(acc) {
+      acc.channels.forEach(function(ch) {
+        channelSet[ch] = channelSet[ch] || [];
+        channelSet[ch] =
+          mergeUsers(channelSet[ch], acc.users);
+      })
+    })
+    console.log("channelSet", channelSet)
+    return {
+      access : channelSet,
+      channels : preview.channels,
+      reject : preview.reject
+    };
+  };
+
+  function getDocAccessMap(done) {
+    var docAccessMap = {};
+    client.get(["_view", "access"], function(err, data) {
+      data.rows.forEach(function(r) {
+        for (var ch in r.value) {
+          docAccessMap[ch] = docAccessMap[ch] || {}
+          docAccessMap[ch][r.id] = r.value[ch];
+        }
+      })
+      done(err, docAccessMap)
+    })
+  }
+
+  function runSyncFunction(channelSet, id, doc, seq) {
     // console.log('previewFun', doc)
+    doc._id = id
     var sync = previewFun(doc, false, null)
     // console.log('previewFun', doc._id, doc, sync)
     if (sync.reject) {
@@ -92,16 +144,17 @@ function SyncState(db) {
       return;
     }
     sync.channels.forEach(function(ch) {
-      previewChannels[ch] = previewChannels[ch] || {docs : {}, access:{}};
-      previewChannels[ch].docs[doc._id] = seq;
+      channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
+      channelSet[ch].docs[id] = seq;
     })
     sync.access.forEach(function(acc) {
       acc.channels.forEach(function(ch){
-        previewChannels[ch] = previewChannels[ch] || {docs : {}, access:{}};
-        previewChannels[ch].access[doc._id] =
-          mergeUsers(previewChannels[ch].access[doc._id], acc.users);
+        channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
+        channelSet[ch].access[id] =
+          mergeUsers(channelSet[ch].access[id], acc.users);
       })
     })
+    return sync;
   }
 
   function mergeUsers(existing, more) {
@@ -125,6 +178,16 @@ function SyncState(db) {
     })
   }
 
+  self.once("batch", function() {
+    self.connected = true;
+    self.emit("connected")
+  })
+  self.on("newListener", function(name, fun){
+    if (name == "connected" && self.connected) {
+      fun()
+    }
+  })
+
   function onChange(ch) {
     var seq = parseInt(ch.seq.split(":")[1])
     // console.log("onChange", seq, ch)
@@ -132,7 +195,7 @@ function SyncState(db) {
       console.log("no doc", ch)
       return;
     }
-    runSyncFunction(ch.doc, seq)
+    runSyncFunction(previewChannels, ch.id, ch.doc, seq)
     self.emit("change", ch)
   }
 
@@ -148,18 +211,7 @@ SyncState.prototype.__proto__ = events.EventEmitter.prototype;
 
 
 
-// var docAccessMap = {};
-// function getDocAccessMap(db, done) {
-//   sg.get([db, "_view", "access"], function(err, data) {
-//     data.rows.forEach(function(r) {
-//       for (var ch in r.value) {
-//         docAccessMap[ch] = docAccessMap[ch] || {}
-//         docAccessMap[ch][r.id] = r.value[ch];
-//       }
-//     })
-//     done(err, docAccessMap)
-//   })
-// }
+
 
 
 // window.channelWatcher = function(db) {
