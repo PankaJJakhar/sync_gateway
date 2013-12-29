@@ -77,7 +77,7 @@ function initData() {
 function runPreview() {
   var next = getNext(arguments);
   console.log("runPreview")
-  dbState.on("connected", function() {
+  dbState.once("connected", function() {
     var chan = dbState.channel("yakima")
     console.log("chan.changes", chan.changes)
     assert.ok(chan.changes, "has changes")
@@ -102,7 +102,7 @@ function testUpdateSyncCode(){
   var next = getNext(arguments);
   console.log("testUpdateSyncCode")
   dbState.setSyncFunction("function(doc){ channel(doc.channels); if (doc.grant) {access(doc.grant.user, doc.grant.channels)} }")
-  dbState.on("batch", function(){
+  dbState.once("batch", function(){
     var chan = dbState.channel("xylophone")
     assert.ok(chan.access, "access")
     next();
@@ -135,9 +135,21 @@ function testGetDoc() {
     assert.notEqual(JSON.stringify(deployedSync.access), JSON.stringify(previewSync.access), "previewing sync function with access calls, over deployed bucket without")
     next()
   })
-
 }
 
-setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc, testGetDoc)
+function testDeploySyncCode(){
+  var next = getNext(arguments);
+  var newCode = "function(doc){ channel(doc.channels); if (doc.grant) {access(doc.grant.user, doc.grant.channels)} }"
+  console.log("testDeploySyncCode")
+  dbState.deploySyncFunction(newCode, function(err){
+    assert.ok(!err)
+    dbState.client.get("_info", function(err, info){
+      assert.equal(info.config.sync, newCode)
+      next();
+    })
+  })
+}
+
+setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc, testGetDoc, testDeploySyncCode)
 
 

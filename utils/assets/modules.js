@@ -43,7 +43,7 @@ function SyncState(db) {
     return Object.keys(previewChannels);
   }
   this.deployedSyncFunction = function(){
-    return dbInfo.config.sync;
+    return dbInfo.config.sync || "function(doc){\n  channel(doc.channels)\n}";
   }
   this.channel = function(name) {
     var changes = [], revs ={}, chan = previewChannels[name];

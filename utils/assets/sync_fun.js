@@ -40,17 +40,42 @@ var SyncFunctionForm = React.createClass({
   getInitialState : function() {
     return {}
   },
-  componentDidMount : function(){
+  bindState: function(name) {
+    return function(value) {
+      var newState = {};
+      newState[name] = value;
+      this.setState(newState);
+    }.bind(this);
+  },
+  componentDidMount : function(elem){
     dbState(this.props.db).on("connected", function(){
       var sync = dbState(this.props.db).deployedSyncFunction()
       this.setState({code : sync})
     }.bind(this))
   },
+  previewClicked : function(e) {
+    e.preventDefault();
+    dbState(this.props.db).setSyncFunction(this.state.code)
+  },
+  deployClicked : function(e) {
+    e.preventDefault();
+    var yes = confirm("Are you sure? The page will reload after the function is deployed.")
+    if (yes) {
+      dbState(this.props.db).deploySyncFunction(this.state.code, function(err){
+        if (err) throw(err);
+        window.location.reload();
+      })
+    }
+  },
   render : function() {
+    var editor = this.state.code ? <CodeMirrorEditor
+        onChange={this.bindState('code')}
+        className="SyncFunctionCodeEditor"
+        codeText={this.state.code} /> : <div/>
     return <form className="SyncFunctionCode">
       <h3>Sync Function</h3>
-      <textarea ref="syncCode" value={this.state.code || this.props.code}/>
-      <button>Live Preview Mode</button> <button>Deploy To Server</button>
+      {editor}
+      <button onClick={this.previewClicked}>Live Preview Mode</button> <button onClick={this.deployClicked}>Deploy To Server</button>
     </form>
   }
 })
@@ -60,7 +85,6 @@ var SyncPreview = React.createClass({
     return {}
   },
   setDoc : function(id) {
-    console.log("setDoc", id)
     if (!id) return;
     dbState(this.props.db).getDoc(id, function(doc, deployedSync, previewSync) {
       this.setState({docID : id, doc : doc, deployed : deployedSync, preview : previewSync})
@@ -73,8 +97,9 @@ var SyncPreview = React.createClass({
     this.setDoc(dbState(this.props.db).randomDocID())
   },
   componentDidMount : function(){
-    dbState(this.props.db).on("connected", function(){
-      this.handleRandomAccessDoc()
+    var dbS = dbState(this.props.db);
+    dbS.on("connected", function(){
+      this.setDoc(dbS.randomAccessDocID() || dbS.randomDocID())
     }.bind(this))
   },
   render : function() {
@@ -98,3 +123,55 @@ var SyncPreview = React.createClass({
       </div>
   }
 })
+
+
+
+
+var IS_MOBILE = (
+  navigator.userAgent.match(/Android/i)
+    || navigator.userAgent.match(/webOS/i)
+    || navigator.userAgent.match(/iPhone/i)
+    || navigator.userAgent.match(/iPad/i)
+    || navigator.userAgent.match(/iPod/i)
+    || navigator.userAgent.match(/BlackBerry/i)
+    || navigator.userAgent.match(/Windows Phone/i)
+);
+
+var CodeMirrorEditor = React.createClass({
+  componentDidMount: function(root) {
+    if (IS_MOBILE) {
+      return;
+    }
+    this.editor = CodeMirror.fromTextArea(this.refs.editor.getDOMNode(), {
+      mode: 'javascript',
+      lineNumbers: false,
+      matchBrackets: true,
+      theme: 'solarized-light',
+      readOnly: this.props.readOnly
+    });
+    console.log("CodeMirror",this.editor)
+    this.editor.on('change', this.onChange);
+  },
+  onChange: function() {
+    if (this.props.onChange) {
+      var content = this.editor.getValue();
+      this.props.onChange(content);
+    }
+  },
+  render: function() {
+    // wrap in a div to fully contain CodeMirror
+    var editor;
+    console.log("editor", this.props)
+    if (IS_MOBILE) {
+      editor = <pre style={{overflow: 'scroll'}}>{this.props.codeText}</pre>;
+    } else {
+      editor = <textarea ref="editor" defaultValue={this.props.codeText} />;
+    }
+
+    return (
+      <div className={this.props.className}>
+        {editor}
+      </div>
+    );
+  }
+});
