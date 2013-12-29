@@ -59,10 +59,10 @@ var SyncFunctionForm = React.createClass({
   },
   deployClicked : function(e) {
     e.preventDefault();
-    var yes = confirm("Are you sure? The page will reload after the function is deployed.")
+    var yes = confirm("Are you sure? If you are using in-memory Walrus this will erase your data.")
     if (yes) {
       dbState(this.props.db).deploySyncFunction(this.state.code, function(err){
-        if (err) throw(err);
+        // if (err) throw(err);
         window.location.reload();
       })
     }
@@ -144,12 +144,11 @@ var CodeMirrorEditor = React.createClass({
     }
     this.editor = CodeMirror.fromTextArea(this.refs.editor.getDOMNode(), {
       mode: 'javascript',
-      lineNumbers: false,
+      lineNumbers: true,
       matchBrackets: true,
-      theme: 'solarized-light',
       readOnly: this.props.readOnly
     });
-    console.log("CodeMirror",this.editor)
+    // console.log("CodeMirror",this.editor)
     this.editor.on('change', this.onChange);
   },
   onChange: function() {
@@ -161,7 +160,7 @@ var CodeMirrorEditor = React.createClass({
   render: function() {
     // wrap in a div to fully contain CodeMirror
     var editor;
-    console.log("editor", this.props)
+    // console.log("editor", this.props)
     if (IS_MOBILE) {
       editor = <pre style={{overflow: 'scroll'}}>{this.props.codeText}</pre>;
     } else {

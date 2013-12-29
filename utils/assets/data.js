@@ -52,9 +52,9 @@ function SyncState(db) {
       }
     }
     newConfig.sync = code;
-    client.del([""],function(err, ok){
-      if (err) return done(err);
-      client.put([""],newConfig, function(err, ok){
+    client.del([""]/*[""] to force trailing slash*/,function(err, ok){
+      // if (err) return done(err);
+      client.put([""]/*[""] to force trailing slash*/,newConfig, function(err, ok){
         if (!err) {
           self.setSyncFunction(code)
         }

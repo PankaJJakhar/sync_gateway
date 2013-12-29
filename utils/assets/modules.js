@@ -16,10 +16,6 @@ function SyncState(db) {
   // setup on / emit / etc
   events.EventEmitter.call(this);
 
-  // public state
-  this.db = db;
-  this.pageSize = 100
-
   // private state
   var previewFun, self=this, client = coax(db),
     dbInfo = {}, previewChannels = {};
@@ -32,6 +28,10 @@ function SyncState(db) {
       }
     */
 
+  // public state
+  this.db = db;
+  this.client = client;
+  this.pageSize = 100
 
   // pubic methods
   this.setSyncFunction = function(funCode) {
@@ -44,6 +44,24 @@ function SyncState(db) {
   }
   this.deployedSyncFunction = function(){
     return dbInfo.config.sync || "function(doc){\n  channel(doc.channels)\n}";
+  }
+  this.deploySyncFunction = function(code, done) {
+    var newConfig = {}
+    for (var k in dbInfo.config) {
+      if (dbInfo.config[k]) {
+        newConfig[k] = dbInfo.config[k]
+      }
+    }
+    newConfig.sync = code;
+    client.del([""]/*[""] to force trailing slash*/,function(err, ok){
+      // if (err) return done(err);
+      client.put([""]/*[""] to force trailing slash*/,newConfig, function(err, ok){
+        if (!err) {
+          self.setSyncFunction(code)
+        }
+        done(err, ok)
+      })
+    })
   }
   this.channel = function(name) {
     var changes = [], revs ={}, chan = previewChannels[name];
