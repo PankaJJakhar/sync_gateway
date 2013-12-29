@@ -150,6 +150,13 @@ function testDeploySyncCode(){
   })
 }
 
-setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc, testGetDoc, testDeploySyncCode)
+
+function newChangesShowUp(){
+  var next = getNext(arguments);
+  console.log("newChangesShowUp")
+}
+
+
+setUp(initData, runPreview, testAccess, testUpdateSyncCode, testRandomDoc, testRandomAccessDoc, testGetDoc, testDeploySyncCode, newChangesShowUp)
 
 

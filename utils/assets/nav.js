@@ -1,6 +1,37 @@
 /** @jsx React.DOM */
 
 var NavBar = React.createClass({
+  getInitialState : function() {
+    return {}
+  },
+  deployedMode : function() {
+    this.setState({mode : "deployed"})
+  },
+  previewMode : function(){
+    this.setState({mode : "preview"})
+  },
+  setStateForProps: function(props) {
+    if (!props.db) return;
+    if (this.dbs && this.dbs.db == props.db) return;
+    // cleanup old dbs
+    if (this.dbs) {
+      this.dbs.removeListener("deployed", this.deployedMode)
+      this.dbs.removeListener("preview", this.previewMode)
+    }
+
+    this.dbs = dbState(props.db);
+    this.dbs.db = props.db
+    this.dbs.on("deployed", this.deployedMode)
+    this.dbs.on("preview", this.previewMode)
+  },
+  componentWillReceiveProps: function(newProps) {
+    // console.log("componentWillReceiveProps")
+    this.setStateForProps(newProps)
+  },
+  componentWillMount: function() {
+    // console.log("componentWillMount")
+    this.setStateForProps(this.props)
+  },
   render : function() {
     console.log("NavBar", this.props)
     var page = this.props.page;
@@ -13,19 +44,33 @@ var NavBar = React.createClass({
         <strong>Hello.</strong>
       </div>
     </div>;
+    return (<div className="NavBarWrap"><div className={"NavBar "+this.state.mode}>
+      <PreviewToggle mode={this.state.mode} db={db}/>
+      <a className="logo" href="/_utils/">
+        <img src="/_utils/assets/logo.png"/>
+      </a>{" "}
+      <strong>{db}</strong>{" > "}
+      <a className={page == "info" && "active"}
+        href={dbLink(db)}>Sync</a>{" : "}
+      <a className={page == "channels" && "active"}
+        href={dbLink(db, "channels")}>Channels</a>{" : "}
+      <a className={page == "users" && "active"}
+        href={dbLink(db, "users")}>Users</a>
+    </div></div>);
+  }
+})
 
-    return (<div className="NavBarWrap"><div className="NavBar">
-          <a className="logo" href="/_utils/">
-            <img src="/_utils/assets/logo.png"/>
-          </a>{" "}
-          <strong>{db}</strong>{" > "}
-          <a className={page == "info" && "active"}
-            href={dbLink(db)}>Sync</a>{" : "}
-          <a className={page == "channels" && "active"}
-            href={dbLink(db, "channels")}>Channels</a>{" : "}
-          <a className={page == "users" && "active"}
-            href={dbLink(db, "users")}>Users</a>
-        </div></div>);
+var PreviewToggle = React.createClass({
+  revert : function() {
+    var dbs = dbState(this.props.db)
+    dbs.setSyncFunction(dbs.deployedSyncFunction())
+  },
+  render : function() {
+    if (this.props.mode == "preview") {
+      return <div className="PreviewToggle">Preview mode: <a onClick={this.revert}>revert to deployed.</a></div>
+    } else {
+      return <div className="PreviewToggle">Deployed mode.</div>
+    }
   }
 })
 

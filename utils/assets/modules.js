@@ -35,10 +35,23 @@ function SyncState(db) {
 
   // pubic methods
   this.setSyncFunction = function(funCode) {
+    oldCode = previewFun && previewFun.code
+    if (funCode == oldCode) {
+      return;
+    }
     previewChannels = {};
     previewFun = compileSyncFunction(funCode)
+    previewFun.code = funCode
     loadChangesHistory()
-  };
+    if (this.deployedSyncFunction() == funCode) {
+      this.emit("deployed")
+    } else {
+      this.emit("preview")
+    }
+  }
+  this.getSyncFunction = function() {
+    return previewFun.code;
+  }
   this.channelNames = function() {
     return Object.keys(previewChannels);
   }
@@ -202,10 +215,15 @@ function SyncState(db) {
 
   function loadChangesHistory(){
     // get first page
-    client.get(["_changes", {include_docs : true}], function(err, data) {
+    client.get(["_changes", {limit : self.pageSize, include_docs : true}], function(err, data) {
       // console.log("history", data)
       data.results.forEach(onChange)
       self.emit("batch")
+
+      client.changes({since : data.last_seq, include_docs : true}, function(err, data){
+        // console.log("changes", data);
+        onChange(data)
+      })
     })
   }
 

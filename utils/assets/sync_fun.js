@@ -49,13 +49,20 @@ var SyncFunctionForm = React.createClass({
   },
   componentDidMount : function(elem){
     dbState(this.props.db).on("connected", function(){
-      var sync = dbState(this.props.db).deployedSyncFunction()
+      var sync = dbState(this.props.db).getSyncFunction()
       this.setState({code : sync})
     }.bind(this))
   },
   previewClicked : function(e) {
     e.preventDefault();
-    dbState(this.props.db).setSyncFunction(this.state.code)
+    var dbs = dbState(this.props.db)
+    dbs.setSyncFunction(this.state.code)
+
+    // if (dbs.getSyncFunction() !== this.state.code) {
+    //   if (dbs.deployedSyncFunction() == this.state.code) {
+    //     console.log("preview mode!")
+    //   }
+    // }
   },
   deployClicked : function(e) {
     e.preventDefault();
