@@ -1,6 +1,7 @@
 /** @jsx React.DOM */
 
 var NavBar = React.createClass({
+  mixins : [StateForPropsMixin],
   getInitialState : function() {
     return {}
   },
@@ -11,6 +12,7 @@ var NavBar = React.createClass({
     this.setState({mode : "preview"})
   },
   setStateForProps: function(props) {
+    console.log("setStateForProps NavBar", props)
     if (!props.db) return;
     if (this.dbs && this.dbs.db == props.db) return;
     // cleanup old dbs
@@ -23,14 +25,6 @@ var NavBar = React.createClass({
     this.dbs.db = props.db
     this.dbs.on("deployed", this.deployedMode)
     this.dbs.on("preview", this.previewMode)
-  },
-  componentWillReceiveProps: function(newProps) {
-    // console.log("componentWillReceiveProps")
-    this.setStateForProps(newProps)
-  },
-  componentWillMount: function() {
-    // console.log("componentWillMount")
-    this.setStateForProps(this.props)
   },
   render : function() {
     console.log("NavBar", this.props)
@@ -50,6 +44,8 @@ var NavBar = React.createClass({
         <img src="/_utils/assets/logo.png"/>
       </a>{" "}
       <strong>{db}</strong>{" > "}
+      <a className={page == "info" && "active"}
+        href={dbLink(db,"documents")}>Documents</a>{" : "}
       <a className={page == "info" && "active"}
         href={dbLink(db)}>Sync</a>{" : "}
       <a className={page == "channels" && "active"}

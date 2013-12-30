@@ -57,6 +57,10 @@ function channelLink(db, channel) {
   return <a href={dbLink(db,"channels/"+channel)}>{channel}</a>
 }
 
+function docLink(db, id) {
+  return <a href={dbLink(db,"documents/"+id)}>{id}</a>
+}
+
 function userLink(db, user) {
   return <a href={dbLink(db,"users/"+user)}>{user}</a>
 }
@@ -71,10 +75,6 @@ window.DocSyncPreview = React.createClass({
     var db = this.props.db;
     if (!sync) return <div></div>;
     var channels = sync.channels;
-    var accessList = []
-    for (var ch in sync.access) {
-      accessList.push({name:ch, users:sync.access[ch]})
-    }
     return <div className="DocSyncPreview">
       <div className="channels">
         <h4>Channels</h4>
@@ -84,24 +84,36 @@ window.DocSyncPreview = React.createClass({
         })}
         </ul>
       </div>
-      <div className="access">
-        <h4>Access</h4>
-        <dl>
-        {accessList.map(function(ch) {
-          return <span><dt>{channelLink(db, ch.name)}</dt>
-                      {ch.users.map(function(who){
-                              return <dd>{userLink(db, who)}</dd>
-                            })}</span>
-        })}
-        </dl>
-      </div>
+      <AccessList access={sync.access} db={db}/>
     </div>;
     }
+})
+
+window.AccessList = React.createClass({
+  render : function() {
+    var db = this.props.db;
+    var accessList = []
+    for (var ch in this.props.access) {
+      accessList.push({name: ch, users: this.props.access[ch]})
+    }
+    return <div className="access">
+    <h4>Access</h4>
+    <dl>
+    {accessList.map(function(ch) {
+      return <span><dt>{channelLink(db, ch.name)}</dt>
+        {ch.users.map(function(who){
+            return <dd>{userLink(db, who)}</dd>
+          })}</span>
+    })}
+    </dl>
+  </div>
+  }
 })
 
 var clear = <br className="clear"/>
 
 window.DocInfo = React.createClass({
+  mixins : [StateForPropsMixin],
   getInitialState: function() {
     return {doc: {}, sync : {channels:{}, access:{}}, db : this.props.db};
   },
@@ -121,12 +133,6 @@ window.DocInfo = React.createClass({
       this.setState(this.getInitialState())
 
     }
-  },
-  componentWillReceiveProps: function(newProps) {
-    this.setStateForProps(newProps)
-  },
-  componentWillMount: function() {
-    this.setStateForProps(this.props)
   },
   render : function() {
     console.log("DocInfo", this.state)

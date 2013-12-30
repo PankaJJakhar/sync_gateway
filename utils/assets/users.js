@@ -20,6 +20,7 @@ window.UsersPage = React.createClass({
 });
 
 var UserInfo = React.createClass({
+  mixins : [StateForPropsMixin],
   getInitialState: function() {
     return {db:this.props.db};
   },
@@ -30,14 +31,6 @@ var UserInfo = React.createClass({
       }.bind(this))
     else
       this.setState(this.getInitialState())
-  },
-  componentWillReceiveProps: function(newProps) {
-    // console.log("componentWillReceiveProps")
-    this.setStateForProps(newProps)
-  },
-  componentWillMount: function() {
-    // console.log("componentWillMount")
-    this.setStateForProps(this.props)
   },
   render : function() {
     var user = this.state.user, userID = this.state.userID, db = this.state.db;

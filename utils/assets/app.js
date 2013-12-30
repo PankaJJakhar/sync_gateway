@@ -16,19 +16,6 @@ function draw(component, container) {
   );
 }
 
-function dbLink(db, path) {
-  var base = "/_utils/db/"+db
-  if (path) {
-    base += "/"+path
-  }
-  return base
-}
-
-function dbState(db) {
-  // console.log("dbState",sg(db).url)
-  return syncState.SyncStateForDatabase(sg(db).url.toString())
-}
-
 var app = Davis(function() {
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;
@@ -56,6 +43,7 @@ var app = Davis(function() {
         <PageWrap page="home">
           <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
           <AllDatabases/>
+          <p>Link to docs. Architecture diagram. cloud signup, downloads</p>
         </PageWrap>)
     })
 
@@ -93,7 +81,7 @@ var app = Davis(function() {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
       draw(
         <PageWrap db={req.params.db} page="channels">
-            <ChannelsGridPage db={req.params.db} watch={watch} title={req.params.title}/>
+            <ChannelsWatchPage db={req.params.db} watch={watch} title={req.params.title}/>
         </PageWrap>);
     })
 

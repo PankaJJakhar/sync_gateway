@@ -186,16 +186,22 @@ function SyncState(db) {
       console.error("update rejected by sync function", doc, sync)
       return;
     }
+    var changed = {};
     sync.channels.forEach(function(ch) {
       channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
       channelSet[ch].docs[id] = seq;
+      changed[ch]=true;
     })
     sync.access.forEach(function(acc) {
       acc.channels.forEach(function(ch){
+        changed[ch]=true;
         channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
         channelSet[ch].access[id] =
           mergeUsers(channelSet[ch].access[id], acc.users);
       })
+    })
+    Object.keys(changed).forEach(function(channel) {
+      self.emit("ch:"+channel);
     })
     return sync;
   }
