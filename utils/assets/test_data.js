@@ -1,10 +1,10 @@
 var hostname = "http://localhost:4985/", db_name = "sync_gateway",
   assert = require("assert"),
-  syncState = require("./data"),
+  SyncModel = require("./data"),
   sga = require("coax")(hostname)
 
 console.log("test our module loaded")
-assert.ok(syncState.SyncStateForDatabase, "SyncStateForDatabase API exists")
+assert.ok(SyncModel.SyncModelForDatabase, "SyncModelForDatabase API exists")
 
 
 console.log("test if database is accessible")
@@ -58,7 +58,7 @@ var dbState;
 function initData() {
   var next = getNext(arguments);
   console.log("initData",hostname+db_name)
-  dbState = syncState.SyncStateForDatabase(hostname+db_name)
+  dbState = SyncModel.SyncModelForDatabase(hostname+db_name)
   // console.log("dbState", dbState)
   var changeHandler = function(change) {
     // console.log("change", change.id)

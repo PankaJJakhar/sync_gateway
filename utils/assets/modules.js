@@ -1,32 +1,24 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"h7mr5q":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"f7r3xx":[function(require,module,exports){
 var events = require('events'),
   coax = require("coax");
 
 var dbStateSingletons = {};
-exports.SyncStateForDatabase = function(db) {
+exports.SyncModelForDatabase = function(db) {
   var state = dbStateSingletons[db]
   if (!state) {
-    state = new SyncState(db)
+    state = new SyncModel(db)
     dbStateSingletons[db] = state
   }
   return state
 }
 
-function SyncState(db) {
+function SyncModel(db) {
   // setup on / emit / etc
   events.EventEmitter.call(this);
 
   // private state
   var previewFun, self=this, client = coax(db),
     dbInfo = {}, previewChannels = {}, previewDocs = {};
-    /*
-      "name" : {
-        docs : {"docid" : seq},
-        access : {
-          "docid" : [userid, userid, roleid, ...]
-        }
-      }
-    */
 
   // public state
   this.db = db;
@@ -68,12 +60,15 @@ function SyncState(db) {
     }
     newConfig.sync = code;
     client.del([""]/*[""] to force trailing slash*/,function(err, ok){
-      // if (err) return done(err);
+      if (err && err.constructor !== SyntaxError) {
+        return done(err);
+      }
       client.put([""]/*[""] to force trailing slash*/,newConfig, function(err, ok){
-        if (!err) {
-          self.setSyncFunction(code)
+        if (err && err.constructor !== SyntaxError) {
+          return done(err);
         }
-        done(err, ok)
+        self.setSyncFunction(code)
+        done(false, ok)
       })
     })
   }
@@ -234,7 +229,7 @@ function SyncState(db) {
       self.emit("batch")
 
       client.changes({since : data.last_seq, include_docs : true}, function(err, data){
-        console.log("change", err, data);
+        // console.log("change", err, data);
         if (!err)
         onChange(data)
       })
@@ -253,9 +248,9 @@ function SyncState(db) {
 
   function onChange(ch) {
     var seq = parseInt(ch.seq.split(":")[1])
-    console.log("onChange", seq, ch)
+    // console.log("onChange", seq, ch)
     if (!ch.doc) {
-      console.log("no doc", ch)
+      console.error("no doc", ch)
       return;
     }
     var sync = runSyncFunction(previewChannels, ch.id, ch.doc, seq)
@@ -272,156 +267,7 @@ function SyncState(db) {
   })
 }
 
-SyncState.prototype.__proto__ = events.EventEmitter.prototype;
-
-
-
-
-
-
-
-// window.channelWatcher = function(db) {
-//   var state = {
-//     channels : {}
-//   }
-//   var watchers = {};
-//   function didChange(change) {
-//     for (var w in watchers) {
-//       if (watchers.hasOwnProperty(w)) {
-//         watchers[w](change)
-//       }
-//     }
-//   }
-
-//   // subscribeToDbChanges(db, function(change){})
-//   queryAllChannels(db, function(err, chs) {
-//     console.log("queryAllChannels done", err, chs)
-//     if (err) return;
-
-//     getDocAccessMap(db, function(err, accessMap) {
-//       state.access = accessMap;
-//       state.channels = chs;
-//       didChange()
-//     })
-
-//   })
-
-//   function channelsList(forChannels) {
-//     return forChannels.map(function(ch){
-//       return {name : ch, docs : state.channels[ch], access : state.access[ch]}
-//     })
-//   }
-
-//   return {
-//     setChannels : function(newChannels) {
-//       console.log("setChannels", newChannels)
-//     },
-//     onChange : function(name, handler) {
-//       watchers[name] = handler
-//     },
-//     channelNames : function() {
-//       return Object.keys(state.channels)
-//     },
-//     channels : function(forChannels){
-//       var channels = channelsList(forChannels);
-//       var chLists = [];
-
-//       channels.forEach(function(ch){
-//         var changes = [];
-
-//         var revs ={}, docs = ch.docs;
-//         for (var id in docs)
-//           revs[docs[id]] = id
-//         var rs = Object.keys(revs).sort(function(a, b){
-//           return parseInt(a) - parseInt(b);
-//         })
-//         // for (var i = 0; i <= rs.length; i++) {
-//         for (var i = rs.length - 1; i >= 0; i--) {
-//           var docid = revs[rs[i]];
-//           changes.push([docid, rs[i]])
-//         }
-//         ch.changes = changes;
-//         chLists.push(ch)
-//       })
-//       return chLists
-//     }
-//   };
-// }
-
-// function queryAllChannels(db, done) {
-//   sg.get([db, "_view", "channels"], function(err, data) {
-//     if (err) return done(err);
-//     console.log("queryAllChannels", data)
-//     var ch, max = 0, keys = {}, rows = data.rows;
-//     for (var i = 0; i < rows.length; i++) {
-//       ch = rows[i].key[0];
-//       keys[ch] = keys[ch] || {};
-//       keys[ch][rows[i].id] = rows[i].key[1];
-//       if (rows[i].key[1] > max) max = rows[i].key[1];
-//     }
-//     done(err, keys)
-//   });
-// }
-
-
-// // function(max) {
-// //     // Object.keys(this.state.channels);
-// //     if (this.changes) {
-// //       console.log("already watching")
-// //       return;
-// //     }
-// //     // console.log(max)
-// //     var opts = {};
-
-// //     opts.filter = "sync_gateway/bychannel";
-// //     opts.channels = this.props.watch.join(',')
-// //     opts.since = "*:"+(max-1)
-// //     var w = this;
-
-// // var oldSeq = {};
-// // function parseSeq(seq) {
-// //   var chs = seq.split(',');
-// //   var seqObj = {};
-// //   for (var i = chs.length - 1; i >= 0; i--) {
-// //     var ps = chs[i].split(":"),
-// //       name = ps[0],
-// //       num = parseInt(ps[1])
-// //     seqObj[name] = num;
-// //   };
-// //   var output = {};
-// //   for (var k in oldSeq) {
-// //     if (!seqObj[k]) {
-// //       output[k] = seqObj[k];
-// //     } else if (seqObj[k] && seqObj[k] !== oldSeq[k]) {
-// //       output[k] = seqObj[k];
-// //     }
-// //   }
-// //   oldSeq = seqObj;
-// //   return output;
-// // }
-// // console.log("change opts", opts)
-// //     this.changes = coax([location.origin, this.props.db]).changes(opts, function(err, change) {
-// //       console.log("change", err, change)
-// //       var channels = w.state.channels;
-// //       var seq = parseSeq(change.seq)
-// //       var changed = false
-// //       console.log("before change", seq, change)
-// // // detect which channel got a new num in the seq feed...
-// //       for (var ch in seq) {
-// //         if (!channels[ch]) {
-// //           console.log("ignore", change)
-// //           continue;
-// //           // channels[ch] = {}
-// //         }
-// //         channels[ch][change.id] = seq[ch]
-// //         changed = true
-// //         console.log("changed", ch, change.id, seq[ch])
-// //       }
-// //       // console.log("after change", JSON.stringify(channels))
-// //       if (changed) w.setState({channels:channels})
-// //     })
-
-// //   }
+SyncModel.prototype.__proto__ = events.EventEmitter.prototype;
 
 function shuffleArray(array) {
     for (var i = array.length - 1; i > 0; i--) {
@@ -519,8 +365,8 @@ function compileSyncFunction(syncCode) {
   return compiledFunction;
 }
 
-},{"coax":"nf6DCT","events":10}],"syncState":[function(require,module,exports){
-module.exports=require('h7mr5q');
+},{"coax":"nf6DCT","events":10}],"syncModel":[function(require,module,exports){
+module.exports=require('f7r3xx');
 },{}],"nf6DCT":[function(require,module,exports){
 /*
  * coax

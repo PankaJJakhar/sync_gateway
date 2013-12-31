@@ -2,11 +2,11 @@
 
 var coax = require("coax"),
   sg = coax(location.origin),
-  syncState = require("syncState");
+  SyncModel = require("syncModel");
 
 function dbState(db) {
   // console.log("dbState",sg(db).url)
-  return syncState.SyncStateForDatabase(sg(db).url.toString())
+  return SyncModel.SyncModelForDatabase(sg(db).url.toString())
 }
 
 function dbLink(db, path) {
