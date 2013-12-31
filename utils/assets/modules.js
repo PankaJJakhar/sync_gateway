@@ -234,7 +234,7 @@ function SyncState(db) {
       self.emit("batch")
 
       client.changes({since : data.last_seq, include_docs : true}, function(err, data){
-        // console.log("changes", data);
+        console.log("change", err, data);
         if (!err)
         onChange(data)
       })
@@ -253,7 +253,7 @@ function SyncState(db) {
 
   function onChange(ch) {
     var seq = parseInt(ch.seq.split(":")[1])
-    // console.log("onChange", seq, ch)
+    console.log("onChange", seq, ch)
     if (!ch.doc) {
       console.log("no doc", ch)
       return;

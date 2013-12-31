@@ -2,11 +2,6 @@
  * @jsx React.DOM
  */
 
-var coax = require("coax"), sg = coax(location.origin),
-  syncState = require("syncState");
-
-console.log("syncState",syncState)
-
 Davis.$ = Zepto;
 
 function draw(component, container) {
@@ -20,13 +15,9 @@ var app = Davis(function() {
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;
 
-
-
   this.bind("routeNotFound", function(r) {
-    console.error("routeNotFound", r.path);
-    setTimeout(function(){
-      window.location = "/_utils"
-    }, 2000)
+    alert("routeNotFound: " + r.path);
+    window.location = "/_utils"
   })
 
   this.bind("lookupRoute", function(req) {
@@ -35,9 +26,12 @@ var app = Davis(function() {
     }
   })
 
-// todo route /_utils/db/todos/users/jchris@gmail.com/channels
-// for my channels in the channels view
+  // trim the path-prefix
   this.scope("/_utils", function() {
+
+    /*  /_utils/
+        The home page, list and create databases.
+    */
     this.get('/', function (req) {
       draw(
         <PageWrap page="home">
@@ -48,6 +42,10 @@ var app = Davis(function() {
     })
 
 
+    /*  /_utils/db/myDatabase
+        /_utils/db/myDatabase/documents/myDocID
+        The index page for myDatabase, list and edit documents.
+    */
     function docIndex(req) {
           draw(
             <PageWrap db={req.params.db} page="documents">
@@ -55,10 +53,13 @@ var app = Davis(function() {
             </PageWrap>);
         }
     this.get('/db/:db', docIndex)
-    this.get('/db/:db/documents', docIndex)
+    // old: this.get('/db/:db/documents', docIndex)
     this.get('/db/:db/documents/:id', docIndex)
 
 
+    /*  /_utils/db/myDatabase/sync
+        Sync function editor for myDatabase
+    */
     this.get('/db/:db/sync', function (req) {
       draw(
         <PageWrap db={req.params.db} page="sync">
@@ -90,6 +91,7 @@ var app = Davis(function() {
     }
     this.get('/db/:db/users', userPage)
     this.get('/db/:db/users/:id', userPage)
+    // todo this.get('/db/:db/users/:id/channels', userPage)
   })
 });
 

@@ -1,5 +1,8 @@
 /** @jsx React.DOM */
 
+var coax = require("coax"),
+  sg = coax(location.origin),
+  syncState = require("syncState");
 
 function dbState(db) {
   // console.log("dbState",sg(db).url)
