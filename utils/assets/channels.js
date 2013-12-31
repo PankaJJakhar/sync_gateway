@@ -25,19 +25,21 @@ function hrefToggleWatchingChannel(db, chName, current) {
 }
 
 window.ChannelInfoPage = React.createClass({
-  mixins : [StateForPropsMixin],
+  mixins : [StateForPropsMixin, EventListenerMixin],
   getInitialState: function() {
     return {channel: {}};
   },
-  setStateForProps : function(props) {
-    if (props.db && props.id) {
-      var dbs = dbState(props.db)
-      // todo handle tearing down old listeners
-      // todo listen to only one channel
-      console.log("ChannelInfoPage setStateForProps",props.id);
-      dbs.on("ch:"+props.id, function(){
-        this.setState({channel : dbs.channel(props.id)})
-      }.bind(this))
+  channelChanged : function() {
+    this.setState({
+      channel : dbState(this.props.db).channel(this.props.id)
+    })
+  },
+  setStateForProps : function(newProps, oldProps) {
+    // console.log("ChannelInfoPage setStateForProps",newProps.id);
+    if (newProps.db && newProps.id) {
+      var dbs = dbState(newProps.db)
+      this.listen(dbs, "ch:"+newProps.id, this.channelChanged)
+      this.channelChanged()
     }
   },
   render : function() {
@@ -69,9 +71,9 @@ var ChannelAccessList = React.createClass({
     <h4>Access</h4>
     <dl>
     {accessList.map(function(ch) {
-      return <span><dt>{docLink(db, ch.id)}</dt>
+      return <span><dt key={"dt"+ch.id}>{docLink(db, ch.id)}</dt>
         {ch.users.map(function(who){
-            return <dd>{userLink(db, who)}</dd>
+            return <dd key={"dd"+ch.id+who}>{userLink(db, who)}</dd>
           })}</span>
     })}
     </dl>
@@ -112,7 +114,7 @@ var ChannelChanges = React.createClass({
   },
   setStateForProps : function(newProps, oldProps) {
     var dbs = dbState(newProps.db)
-    this.listen(dbs, "ch:"+newProps.id, this.channelChanged.bind(this))
+    this.listen(dbs, "ch:"+newProps.id, this.channelChanged)
     this.channelChanged()
   },
   render : function() {
@@ -132,18 +134,20 @@ var ChannelChanges = React.createClass({
 })
 
 window.RecentChannels = React.createClass({
-  mixins : [StateForPropsMixin],
+  mixins : [StateForPropsMixin, EventListenerMixin],
   getInitialState: function() {
     return {channelNames: [], db : this.props.db};
   },
-  setStateForProps: function(props) {
-    console.log("setStateForProps RecentChannels", props);
-    var myState = dbState(props.db)
-    myState.on("change", function(){
-      var newNames = myState.channelNames();
-      this.setState({channelNames:newNames})
-    }.bind(this))
-    this.setState({channelNames:myState.channelNames()})
+  changed : function() {
+    // console.log("RecentChannels changed")
+    this.setState({
+      channelNames : dbState(this.props.db).channelNames()
+    })
+  },
+  setStateForProps : function(newProps, oldProps) {
+    var dbs = dbState(newProps.db)
+    this.listen(dbs, "change", this.changed)
+    this.changed()
   },
   render : function() {
     // console.log("render RecentChannels", this.state, this.props)

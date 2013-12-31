@@ -44,10 +44,10 @@ var NavBar = React.createClass({
         <img src="/_utils/assets/logo.png"/>
       </a>{" "}
       <strong>{db}</strong>{" > "}
-      <a className={page == "info" && "active"}
-        href={dbLink(db,"documents")}>Documents</a>{" : "}
-      <a className={page == "info" && "active"}
-        href={dbLink(db)}>Sync</a>{" : "}
+      <a className={page == "documents" && "active"}
+        href={dbLink(db)}>Documents</a>{" : "}
+      <a className={page == "sync" && "active"}
+        href={dbLink(db, "sync")}>Sync</a>{" : "}
       <a className={page == "channels" && "active"}
         href={dbLink(db, "channels")}>Channels</a>{" : "}
       <a className={page == "users" && "active"}

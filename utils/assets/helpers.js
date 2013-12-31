@@ -38,11 +38,11 @@ window.brClear = React.createClass({
 
 window.StateForPropsMixin = {
   componentWillReceiveProps: function(newProps) {
-    console.log("StateForPropsMixin componentWillReceiveProps", newProps, this.props)
+    // console.log("StateForPropsMixin componentWillReceiveProps", newProps, this.props)
     this.setStateForProps(newProps, this.props)
   },
   componentWillMount: function() {
-    console.log("StateForPropsMixin componentWillMount", this.props)
+    // console.log("StateForPropsMixin componentWillMount", this.props)
     this.setStateForProps(this.props)
   }
 };
@@ -64,19 +64,21 @@ window.EventListenerMixin = {
         sub.emitter.removeListener(sub.event, sub.handler)
       }
     }
-    var newSub = {
+    mixinState[event] = {
       emitter : emitter,
       event : event,
       handler : handler
     }
+    // console.log("EventListenerMixin addListener", event)
     emitter.on(event, handler)
     this.setState({_EventListenerMixinState : mixinState});
   },
   componentWillUnmount : function() {
+    console.log("componentWillUnmount", this)
     var mixinState = this.state._EventListenerMixinState || {};
     for (var event in mixinState) {
       var sub = mixinState[event];
-      console.log("EventListenerMixin removeListener", sub.event)
+      // console.log("EventListenerMixin removeListener", sub.event)
       sub.emitter.removeListener(sub.event, sub.handler)
     }
   },

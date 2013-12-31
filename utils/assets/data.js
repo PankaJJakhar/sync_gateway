@@ -226,6 +226,7 @@ function SyncState(db) {
 
   function loadChangesHistory(){
     // get first page
+    // console.log("loadChangesHistory")
     client.get(["_changes", {limit : self.pageSize, include_docs : true}], function(err, data) {
       // console.log("history", data)
       data.results.forEach(onChange)

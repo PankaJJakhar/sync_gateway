@@ -41,41 +41,31 @@ var app = Davis(function() {
     this.get('/', function (req) {
       draw(
         <PageWrap page="home">
-          <p>Welcome to the Couchbase Sync Gateway administrative interface for {location.origin}. Please select a database to begin.</p>
-          <AllDatabases/>
-          <p>Link to docs. Architecture diagram. cloud signup, downloads</p>
+          <p>Welcome to Couchbase Sync Gateway. You are connected to the admin port at <a href={location.toString()}>{location.toString()}</a></p>
+          <AllDatabases title="Please select a database:"/>
+          <p>Link to docs. Architecture diagram. cloud signup, downloads. Click here to install sample datasets: beerdb, todos, </p>
         </PageWrap>)
     })
 
-    this.get('/db/:db', function (req) {
+
+    function docIndex(req) {
+          draw(
+            <PageWrap db={req.params.db} page="documents">
+              <DocumentsPage db={req.params.db} docID={req.params.id}/>
+            </PageWrap>);
+        }
+    this.get('/db/:db', docIndex)
+    this.get('/db/:db/documents', docIndex)
+    this.get('/db/:db/documents/:id', docIndex)
+
+
+    this.get('/db/:db/sync', function (req) {
       draw(
         <PageWrap db={req.params.db} page="sync">
           <SyncPage db={req.params.db}/>
         </PageWrap>);
     })
 
-    function userPage(req) {
-      draw(
-        <PageWrap page="users" db={req.params.db}>
-          <UsersPage db={req.params.db} userID={req.params.id}/>
-        </PageWrap>);
-    }
-
-    this.get('/db/:db/users', userPage)
-    this.get('/db/:db/users/:id', userPage)
-
-    this.get('/db/:db/documents/:id', function (req) {
-      draw(<PageWrap db={req.params.db} page="documents">
-          <DocumentsPage db={req.params.db} docID={req.params.id}/>
-        </PageWrap>);
-    })
-
-    this.get('/db/:db/documents', function (req) {
-      draw(
-        <PageWrap db={req.params.db} page="documents">
-          <DocumentsPage db={req.params.db}/>
-        </PageWrap>);
-    })
 
     this.get('/db/:db/channels', function (req) {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
@@ -84,13 +74,22 @@ var app = Davis(function() {
             <ChannelsWatchPage db={req.params.db} watch={watch} title={req.params.title}/>
         </PageWrap>);
     })
-
     this.get('/db/:db/channels/:id', function (req) {
       draw(
         <PageWrap db={req.params.db} page="channels">
           <ChannelInfoPage db={req.params.db} id={req.params.id}/>
         </PageWrap>);
     })
+
+
+    function userPage(req) {
+      draw(
+        <PageWrap page="users" db={req.params.db}>
+          <UsersPage db={req.params.db} userID={req.params.id}/>
+        </PageWrap>);
+    }
+    this.get('/db/:db/users', userPage)
+    this.get('/db/:db/users/:id', userPage)
   })
 });
 

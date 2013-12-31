@@ -34,7 +34,8 @@ var UserInfo = React.createClass({
   },
   render : function() {
     var user = this.state.user, userID = this.state.userID, db = this.state.db;
-    if (!user) return <div></div>;
+    if (!this.props.userID) return <div></div>;
+    if (!user) return <div>No such user: {this.props.userID} Perhaps you are browsing a partial replica?</div>;
     return (
       /*jshint ignore:start */
       <div className="UserInfo">

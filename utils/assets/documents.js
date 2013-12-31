@@ -18,23 +18,25 @@ window.DocumentsPage = React.createClass({
   }
 });
 
-
 var ListDocs = React.createClass({
   getInitialState: function() {
     return {rows: []};
   },
   componentWillMount: function() {
     console.log("load ListDocs")
-    dbState(this.props.db).allDocs(function(err, rows){
-      this.setState({rows : rows})
-    }.bind(this));
+    var dbs = dbState(this.props.db)
+    dbs.on("connected", function() {
+      dbs.allDocs(function(err, rows){
+        this.setState({rows : rows})
+      }.bind(this));
+    }.bind(this))
   },
   render : function() {
     var db = this.props.db;
     var rows = this.state.rows;
     /*jshint ignore:start */
     return <div className="RecentChannels">
-          <strong>{rows.length} documents</strong>.
+          <strong>{rows.length} documents</strong>, highlighted documents have access control output with the current sync function.
           <ul>
           {rows.map(function(r) {
             return <li className={r.access && "isAccess"} key={"docs"+r.id}>
@@ -50,7 +52,8 @@ var ListDocs = React.createClass({
 window.JSONDoc = React.createClass({
   render : function() {
     return <div className="JSONDoc">
-      <h4>{this.props.id||"Loading..."}</h4>
+      <h4>{
+        this.props.id ? <span>{this.props.id+" "} <a href={"/"+this.props.db+"/_raw/"+this.props.id}>raw</a></span> : "Loading..."}</h4>
       <pre><code>
       {JSON.stringify(this.props.doc, null, 2)}
       </code></pre>
@@ -102,9 +105,10 @@ window.DocInfo = React.createClass({
     return (
       /*jshint ignore:start */
       <div className="DocInfo">
-        <JSONDoc doc={this.state.doc} id={this.state.docID}/>
+        <JSONDoc db={this.state.db} doc={this.state.doc} id={this.state.docID}/>
         <DocSyncPreview db={this.state.db} sync={this.state.deployed} id={this.state.docID}/>
         <brClear/>
+        <p><a href={"/"+this.props.db+"/"+this.state.docID}>Raw document URL</a></p>
       </div>
       /*jshint ignore:end */
     );

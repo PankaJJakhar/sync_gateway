@@ -139,7 +139,7 @@ var SyncPreview = React.createClass({
   render : function() {
     console.log("SyncPreview", this.state, this.props)
     return <div className="SyncPreview">
-      <JSONDoc doc={this.state.doc} id={this.state.docID}/>
+      <JSONDoc db={this.props.db} doc={this.state.doc} id={this.state.docID}/>
       <div className="docs">
         <p>Preview sync function on real documents:
         <ul className="defaults">
