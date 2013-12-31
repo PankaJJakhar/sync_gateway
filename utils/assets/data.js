@@ -17,7 +17,7 @@ function SyncState(db) {
 
   // private state
   var previewFun, self=this, client = coax(db),
-    dbInfo = {}, previewChannels = {};
+    dbInfo = {}, previewChannels = {}, previewDocs = {};
     /*
       "name" : {
         docs : {"docid" : seq},
@@ -39,6 +39,7 @@ function SyncState(db) {
       return;
     }
     previewChannels = {};
+    previewDocs = {};
     previewFun = compileSyncFunction(funCode)
     previewFun.code = funCode
     loadChangesHistory()
@@ -121,11 +122,16 @@ function SyncState(db) {
       delete raw._sync;
       var previewSet = {}
       var preview = runSyncFunction(previewSet, id, raw, 0)
-
-      console.log("deployed.access", deployed.access)
-
-      cb(raw, transformDeployed(id, deployed), transformPreview(id, preview))
+      cb(err, raw, transformDeployed(id, deployed), transformPreview(id, preview))
     });
+  }
+  this.allDocs = function(cb) {
+    client.get("_all_docs", function(err, data) {
+      var rows = data.rows.map(function(r){
+        return {id : r.id, access : previewDocs[r.id]}
+      })
+      cb(err, rows)
+    })
   }
 
   // private implementation
@@ -187,12 +193,14 @@ function SyncState(db) {
       return;
     }
     var changed = {};
+    previewDocs[id] = false;
     sync.channels.forEach(function(ch) {
       channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
       channelSet[ch].docs[id] = seq;
       changed[ch]=true;
     })
     sync.access.forEach(function(acc) {
+      previewDocs[id] = true;
       acc.channels.forEach(function(ch){
         changed[ch]=true;
         channelSet[ch] = channelSet[ch] || {docs : {}, access:{}};
@@ -200,9 +208,7 @@ function SyncState(db) {
           mergeUsers(channelSet[ch].access[id], acc.users);
       })
     })
-    Object.keys(changed).forEach(function(channel) {
-      self.emit("ch:"+channel);
-    })
+    sync.changed = changed;
     return sync;
   }
 
@@ -227,6 +233,7 @@ function SyncState(db) {
 
       client.changes({since : data.last_seq, include_docs : true}, function(err, data){
         // console.log("changes", data);
+        if (!err)
         onChange(data)
       })
     })
@@ -249,8 +256,11 @@ function SyncState(db) {
       console.log("no doc", ch)
       return;
     }
-    runSyncFunction(previewChannels, ch.id, ch.doc, seq)
+    var sync = runSyncFunction(previewChannels, ch.id, ch.doc, seq)
     self.emit("change", ch)
+    Object.keys(sync.changed).forEach(function(channel) {
+      self.emit("ch:"+channel);
+    })
   }
 
   client.get("_info", function(err, info) {

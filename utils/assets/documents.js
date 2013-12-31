@@ -10,7 +10,8 @@ window.DocumentsPage = React.createClass({
     return (
       /*jshint ignore:start */
       <div>
-      <DocInfo db={db} docID={docID}/>
+      <ListDocs db={db}/>
+      {docID && <DocInfo db={db} docID={docID}/>}
       </div>
       /*jshint ignore:end */
     );
@@ -20,25 +21,29 @@ window.DocumentsPage = React.createClass({
 
 var ListDocs = React.createClass({
   getInitialState: function() {
-    return {docs: []};
+    return {rows: []};
   },
   componentWillMount: function() {
     console.log("load ListDocs")
-    sg.get([this.props.db, "_view", "channels",
-      {start_key : ["*"], end_key : ["*", {}]}], function(err, data) {
-      console.log("got", data)
-      this.setState({docs : data.rows})
+    dbState(this.props.db).allDocs(function(err, rows){
+      this.setState({rows : rows})
     }.bind(this));
   },
   render : function() {
     var db = this.props.db;
-    var docs = this.state.docs;
+    var rows = this.state.rows;
     /*jshint ignore:start */
-    return (<ul className="sidebar">
-        {docs.map(function(doc) {
-          return <li><a href={dbLink(db, "documents/"+doc.id)}>{doc.key}</a></li>;
-        })}
-      </ul>)
+    return <div className="RecentChannels">
+          <strong>{rows.length} documents</strong>.
+          <ul>
+          {rows.map(function(r) {
+            return <li className={r.access && "isAccess"} key={"docs"+r.id}>
+              <a href={dbLink(db, "documents/"+r.id)}>
+                {r.id}
+              </a>
+              </li>;
+          })}
+        </ul></div>
   }
 })
 
@@ -53,43 +58,8 @@ window.JSONDoc = React.createClass({
   }
 })
 
-function channelLink(db, channel) {
-  return <a href={dbLink(db,"channels/"+channel)}>{channel}</a>
-}
-
-function docLink(db, id) {
-  return <a href={dbLink(db,"documents/"+id)}>{id}</a>
-}
-
-function userLink(db, user) {
-  return <a href={dbLink(db,"users/"+user)}>{user}</a>
-}
-
-window.DocSyncPreview = React.createClass({
-  getDefaultProps : function(){
-    return {sync:{channels:[], access:{}}};
-  },
-  render : function() {
-    var sync = this.props.sync;
-    console.log("sync", sync)
-    var db = this.props.db;
-    if (!sync) return <div></div>;
-    var channels = sync.channels;
-    return <div className="DocSyncPreview">
-      <div className="channels">
-        <h4>Channels</h4>
-        <ul>
-        {channels.map(function(ch) {
-          return <li>{channelLink(db, ch)}</li>
-        })}
-        </ul>
-      </div>
-      <AccessList access={sync.access} db={db}/>
-    </div>;
-    }
-})
-
-window.AccessList = React.createClass({
+// smells like ChannelAccessList
+var AccessList = React.createClass({
   render : function() {
     var db = this.props.db;
     var accessList = []
@@ -110,38 +80,31 @@ window.AccessList = React.createClass({
   }
 })
 
-var clear = <br className="clear"/>
-
 window.DocInfo = React.createClass({
   mixins : [StateForPropsMixin],
   getInitialState: function() {
-    return {doc: {}, sync : {channels:{}, access:{}}, db : this.props.db};
+    return {doc: {}, deployed : {channels:[], access:{}}, db : this.props.db};
+  },
+  setDoc : function(id) {
+    if (!id) return;
+    dbState(this.props.db).getDoc(id, function(err, doc, deployedSync, previewSync) {
+      if (err) {return console.error(err);}
+      this.setState({docID : id, doc : doc, deployed : deployedSync, preview : previewSync})
+    }.bind(this))
   },
   setStateForProps : function(props) {
-    console.log("setStateForProps", props)
     if (props.db && props.docID) {
-      sg.get([props.db, "_raw", props.docID], function(err, data) {
-        var sync = data._sync;
-        delete data._sync;
-        var state = {doc : data, sync: sync, docID : props.docID, db : props.db};
-        // if (this.props.syncFunctionCode) {
-        //   state.preview = runSyncFunction(this.props.syncFunctionCode, data)
-        // }
-        this.setState(state);
-      }.bind(this))
-    } else {
-      this.setState(this.getInitialState())
-
+      this.setDoc(props.docID)
     }
   },
   render : function() {
-    console.log("DocInfo", this.state)
+    console.log("render DocInfo", this.state)
     return (
       /*jshint ignore:start */
       <div className="DocInfo">
         <JSONDoc doc={this.state.doc} id={this.state.docID}/>
-        <DocSyncPreview db={this.state.db} sync={this.state.sync} id={this.state.docID}/>
-        {clear}
+        <DocSyncPreview db={this.state.db} sync={this.state.deployed} id={this.state.docID}/>
+        <brClear/>
       </div>
       /*jshint ignore:end */
     );

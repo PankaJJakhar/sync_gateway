@@ -88,13 +88,6 @@ a:hover {
   padding:0;
 }
 
-#sidebar {
-  background: #ddd;
-  float:left;
-  width: 15%;
-  min-height: 1000px;
-}
-
 #main {
 /*  width: 85%;
   float: left;*/
@@ -139,16 +132,17 @@ a:hover {
 
 /* layout */
 .SyncFunEditor {
-  background: #efe;
+  /*background: #efe;*/
   width: 100%
 }
 
 
 .SyncPreview {
-  background: #bbb;
+  /*background: #bbb;*/
   padding:1em;
   float:left;
   width: 50%;
+  min-width: 40em;
 }
 
 .SyncPreview .docs {
@@ -158,18 +152,20 @@ a:hover {
 }
 
 .JSONDoc {
-  width: 66%;
+  width: 60%;
   padding: 0.1em 0.25em;
   float:left;
+  overflow: scroll;
+  max-height: 24em;
 }
 
 .JSONDoc pre {
-  background: #fffded;
+  background: #f3f3f8;
   padding: 0.1em 0.25em;
 }
 
 .DocSyncPreview {
-  clear:left;
+  /*clear:left;*/
   padding: 0.1em 0.25em;
 }
 
@@ -211,7 +207,7 @@ a:hover {
   padding:.25em;
 }
 
-.ChannelChanges li.isAccess {
+li.isAccess {
   background: #fdf5cc;
 }
 
@@ -266,15 +262,23 @@ a:hover {
 .SyncFunctionCode {
   float: left;
   width:50%;
+  min-width: 40em;
   padding:1em;
-  background: #ebebeb;
+  /*background: #ebebeb;*/
 }
 
+.SyncFunctionCodeButtons {
+  float:right;
+  padding: 0.25em;
+}
+
+.SyncFunctionCodeEditor {
+  border:1px solid #aaa;
+}
 
 .SyncFunEditor textarea {
   font-size: 1em;
   width: 100%; height: 20em;
   padding: 0.25em;
   background: #fefefe;
-
 }

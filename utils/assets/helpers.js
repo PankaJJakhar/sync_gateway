@@ -1,3 +1,10 @@
+/** @jsx React.DOM */
+
+
+function dbState(db) {
+  // console.log("dbState",sg(db).url)
+  return syncState.SyncStateForDatabase(sg(db).url.toString())
+}
 
 function dbLink(db, path) {
   var base = "/_utils/db/"+db
@@ -7,10 +14,27 @@ function dbLink(db, path) {
   return base
 }
 
-function dbState(db) {
-  // console.log("dbState",sg(db).url)
-  return syncState.SyncStateForDatabase(sg(db).url.toString())
+function channelLink(db, channel) {
+  return <a href={dbLink(db,"channels/"+channel)}>{channel}</a>
 }
+
+function docLink(db, id) {
+  return <a href={dbLink(db,"documents/"+id)}>{id}</a>
+}
+
+function userLink(db, user) {
+  return <a href={dbLink(db,"users/"+user)}>{user}</a>
+}
+
+
+window.brClear = React.createClass({
+  shouldComponentUpdate : function() {
+    return false;
+  },
+  render : function() {
+    return <br className="clear"/>
+  }
+})
 
 window.StateForPropsMixin = {
   componentWillReceiveProps: function(newProps) {

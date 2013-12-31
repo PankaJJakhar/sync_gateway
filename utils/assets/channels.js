@@ -57,6 +57,7 @@ window.ChannelInfoPage = React.createClass({
   }
 })
 
+// smells like AccessList
 var ChannelAccessList = React.createClass({
   render : function() {
     var db = this.props.db;

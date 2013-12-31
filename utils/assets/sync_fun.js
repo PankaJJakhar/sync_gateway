@@ -35,6 +35,29 @@ var SyncFunEditor = React.createClass({
   }
 })
 
+window.DocSyncPreview = React.createClass({
+  getDefaultProps : function(){
+    return {sync:{channels:[], access:{}}};
+  },
+  render : function() {
+    var sync = this.props.sync;
+    // console.log("sync", sync)
+    var db = this.props.db;
+    if (!sync) return <div></div>;
+    var channels = sync.channels;
+    return <div className="DocSyncPreview">
+      <div className="channels">
+        <h4>Channels</h4>
+        <ul>
+        {channels.map(function(ch) {
+          return <li>{channelLink(db, ch)}</li>
+        })}
+        </ul>
+      </div>
+      <AccessList access={sync.access} db={db}/>
+    </div>;
+    }
+})
 
 var SyncFunctionForm = React.createClass({
   getInitialState : function() {
@@ -82,7 +105,10 @@ var SyncFunctionForm = React.createClass({
     return <form className="SyncFunctionCode">
       <h3>Sync Function</h3>
       {editor}
-      <button onClick={this.previewClicked}>Live Preview Mode</button> <button onClick={this.deployClicked}>Deploy To Server</button>
+      <div className="SyncFunctionCodeButtons">
+        <button onClick={this.previewClicked}>Live Preview Mode</button>
+        <button onClick={this.deployClicked}>Deploy To Server</button>
+      </div>
     </form>
   }
 })
@@ -93,7 +119,8 @@ var SyncPreview = React.createClass({
   },
   setDoc : function(id) {
     if (!id) return;
-    dbState(this.props.db).getDoc(id, function(doc, deployedSync, previewSync) {
+    dbState(this.props.db).getDoc(id, function(err, doc, deployedSync, previewSync) {
+      if (err) { return console.error(err)}
       this.setState({docID : id, doc : doc, deployed : deployedSync, preview : previewSync})
     }.bind(this))
   },
