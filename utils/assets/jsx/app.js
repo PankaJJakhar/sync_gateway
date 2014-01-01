@@ -2,8 +2,6 @@
  * @jsx React.DOM
  */
 
-Davis.$ = Zepto;
-
 function draw(component, container) {
   React.renderComponent(
     component,
@@ -11,16 +9,25 @@ function draw(component, container) {
   );
 }
 
-var app = Davis(function() {
+Davis.$ = Zepto;
+Davis(function() {
   this.settings.generateRequestOnPageLoad = true;
   this.settings.handleRouteNotFound = true;
 
+  /*  404 handler
+      If the 404 is in-app, redirect to the index page.
+  */
   this.bind("routeNotFound", function(r) {
     alert("routeNotFound: " + r.path);
     window.location = "/_utils"
   })
 
+  /*  External link handler
+      Fallback to a new page load.
+  */
   this.bind("lookupRoute", function(req) {
+    console.log("lookupRoute", req.path)
+    // alert(req.path)
     if (req.path.indexOf("/_utils") !== 0) {
       req.delegateToServer()
     }
@@ -67,7 +74,12 @@ var app = Davis(function() {
         </PageWrap>);
     })
 
+    /*  /_utils/db/myDatabase/channels
+        Channel watcher page for myDatabase
 
+        /_utils/db/myDatabase/channels/myChannel
+        Channel detail page
+    */
     this.get('/db/:db/channels', function (req) {
       var watch = (req.params.watch && req.params.watch.split(',') || []);
       draw(
@@ -82,7 +94,10 @@ var app = Davis(function() {
         </PageWrap>);
     })
 
-
+    /*  /_utils/db/myDatabase
+        /_utils/db/myDatabase/documents/myDocID
+        List and edit users.
+    */
     function userPage(req) {
       draw(
         <PageWrap page="users" db={req.params.db}>

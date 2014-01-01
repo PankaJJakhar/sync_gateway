@@ -4,6 +4,11 @@ var coax = require("coax"),
   sg = coax(location.origin),
   SyncModel = require("syncModel");
 
+
+  // window.addEventListener("beforeunload", function() {
+  //   return "You have unsaved preview"
+  // })
+
 function dbState(db) {
   // console.log("dbState",sg(db).url)
   return SyncModel.SyncModelForDatabase(sg(db).url.toString())
@@ -50,39 +55,43 @@ window.StateForPropsMixin = {
   }
 };
 
-
 window.EventListenerMixin = {
   listen : function(emitter, event, handler) {
     // console.log("listen", event)
-    var mixinState = this.state._EventListenerMixinState || {};
-    var sub = mixinState[event];
-    if (sub) {
+    var mixinStateKeyForEvent = "_EventListenerMixinState:"+event;
+    var sub = this.state[mixinStateKeyForEvent] || {};
+    if (sub.event && sub.emitter) {
       if (sub.event == event && sub.emitter === emitter) {
         // we are already listening, noop
-        // console.log("EventListenerMixin alreadyListening", sub.event)
+        console.log("EventListenerMixin alreadyListening", sub.event, this)
         return;
       } else {
         // unsubscribe from the existing one
-        // console.log("EventListenerMixin removeListener", sub.event)
+        console.log("EventListenerMixin removeListener", sub.event, this)
         sub.emitter.removeListener(sub.event, sub.handler)
       }
     }
-    mixinState[event] = {
+    var mixinState = {
       emitter : emitter,
       event : event,
       handler : handler
     }
-    // console.log("EventListenerMixin addListener", event)
+    console.log("EventListenerMixin addListener", event, this, mixinState)
+    var stateToMerge = {};
+    stateToMerge[mixinStateKeyForEvent] = mixinState;
+    this.setState(stateToMerge);
     emitter.on(event, handler)
-    this.setState({_EventListenerMixinState : mixinState});
   },
   componentWillUnmount : function() {
-    console.log("componentWillUnmount", this)
-    var mixinState = this.state._EventListenerMixinState || {};
-    for (var event in mixinState) {
-      var sub = mixinState[event];
-      // console.log("EventListenerMixin removeListener", sub.event)
-      sub.emitter.removeListener(sub.event, sub.handler)
+    console.log("componentWillUnmount", JSON.stringify(this.state))
+    for (var eventKey in this.state) {
+      var ekps = eventKey.split(":")
+      if (ekps[0] == "_EventListenerMixinState") {
+        var sub = this.state[eventKey]
+        var emitter = sub.emitter
+        console.log("EventListenerMixin Unmount removeListener", eventKey, sub, this)
+        emitter.removeListener(sub.event, sub.handler)
+      }
     }
   },
 }

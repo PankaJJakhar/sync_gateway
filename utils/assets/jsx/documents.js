@@ -35,7 +35,7 @@ var ListDocs = React.createClass({
     var db = this.props.db;
     var rows = this.state.rows;
     /*jshint ignore:start */
-    return <div className="RecentChannels">
+    return <div className="ListDocs">
           <strong>{rows.length} documents</strong>, highlighted documents have access control output with the current sync function.
           <ul>
           {rows.map(function(r) {

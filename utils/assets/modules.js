@@ -1,4 +1,13 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"f7r3xx":[function(require,module,exports){
+/*
+  SyncModel creates an in-memory representation of documents flowing
+  through channels. It also mediates any server access so that UI
+  components are abtracted from network interactions and the API is
+  mostly synchronous queries from the UI triggered by SyncModel events.
+
+  You MUST run ./modules.sh to see changes to this file in your app.
+*/
+
 var events = require('events'),
   coax = require("coax");
 
@@ -37,9 +46,9 @@ function SyncModel(db) {
     previewFun.code = funCode
     loadChangesHistory()
     if (this.deployedSyncFunction() == funCode) {
-      this.emit("deployed")
+      this.emit("syncReset", "deployed")
     } else {
-      this.emit("preview")
+      this.emit("syncReset", "preview")
     }
   }
   this.getSyncFunction = function() {

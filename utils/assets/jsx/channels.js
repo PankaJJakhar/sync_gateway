@@ -5,7 +5,7 @@ function hrefToggleWatchingChannel(db, chName, current) {
   var urlparts = current.split("?");
   var query = urlparts[1]
   if (query) {
-    var parts = query.split("=")
+    var parts = query.split(/=|&/)
     var watch = parts.indexOf("watch")
     if (watch !== -1) {
       channels = parts[watch+1].split(',');
@@ -24,6 +24,29 @@ function hrefToggleWatchingChannel(db, chName, current) {
   }
 }
 
+window.ChannelsWatchPage = React.createClass({
+  componentWillUnmount : function() {
+    console.log("ChannelsWatchPage componentWillUnmount")
+  },
+  render : function(){
+    var channels = this.props.watch;
+    var db = this.props.db,
+      title = this.props.title || "Watch Channels";
+// todo use cookies to offer previous watch list if the cookie differs from url param
+    return (
+      <div className="ChannelGrid">
+      <h2>{title}</h2>
+      <RecentChannels db={db} watch={this.props.watch}/>
+      <ul>
+      {channels.map(function(ch){
+        return <li key={"ChannelChanges"+ch}><ChannelChanges id={ch} db={db}/></li>
+      })}
+      </ul>
+      </div>
+    )
+  }
+})
+
 window.ChannelInfoPage = React.createClass({
   mixins : [StateForPropsMixin, EventListenerMixin],
   getInitialState: function() {
@@ -35,7 +58,6 @@ window.ChannelInfoPage = React.createClass({
     })
   },
   setStateForProps : function(newProps, oldProps) {
-    // console.log("ChannelInfoPage setStateForProps",newProps.id);
     if (newProps.db && newProps.id) {
       var dbs = dbState(newProps.db)
       this.listen(dbs, "ch:"+newProps.id, this.channelChanged)
@@ -81,33 +103,13 @@ var ChannelAccessList = React.createClass({
   }
 })
 
-window.ChannelsWatchPage = React.createClass({
-  render : function(){
-    var channels = this.props.watch;
-    var db = this.props.db,
-      title = this.props.title || "Watch Channels";
-// todo use cookies to offer previous watch list if the cookie differs from url param
-    return (
-      <div className="ChannelGrid">
-      <h2>{title}</h2>
-      <RecentChannels db={db} watch={this.props.watch}/>
-      <ul>
-      {channels.map(function(ch){
-        return <li><ChannelChanges id={ch} db={db}/></li>
-      })}
-      </ul>
-      </div>
-    )
-  }
-})
-
 var ChannelChanges = React.createClass({
   mixins : [StateForPropsMixin, EventListenerMixin],
   getInitialState: function() {
     return {channel: {changes:[]}, db : this.props.db, id : this.props.id};
   },
-  // todo require id and db props
   channelChanged : function() {
+    // console.log("channelChanged bug")
     this.setState({
       channel : dbState(this.props.db).channel(this.props.id)
     })
@@ -115,9 +117,11 @@ var ChannelChanges = React.createClass({
   setStateForProps : function(newProps, oldProps) {
     var dbs = dbState(newProps.db)
     this.listen(dbs, "ch:"+newProps.id, this.channelChanged)
+    this.listen(dbs, "syncReset", this.channelChanged)
     this.channelChanged()
   },
   render : function() {
+    // console.log("render channelChanges", this.props.id)
     var channel = this.state.channel;
     var db = this.state.db;
     return (
@@ -139,10 +143,14 @@ window.RecentChannels = React.createClass({
     return {channelNames: [], db : this.props.db};
   },
   changed : function() {
-    // console.log("RecentChannels changed")
-    this.setState({
-      channelNames : dbState(this.props.db).channelNames()
-    })
+    var oldNames = this.state.channelNames,
+      newNames = dbState(this.props.db).channelNames()
+      console.log("RecentChannels state", newNames)
+    if (oldNames.sort().join() !== newNames.sort().join()) {
+      this.setState({
+        channelNames : newNames
+      })
+    }
   },
   setStateForProps : function(newProps, oldProps) {
     var dbs = dbState(newProps.db)
