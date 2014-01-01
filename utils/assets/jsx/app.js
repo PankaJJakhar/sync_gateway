@@ -18,17 +18,20 @@ Davis(function() {
       If the 404 is in-app, redirect to the index page.
   */
   this.bind("routeNotFound", function(r) {
-    alert("routeNotFound: " + r.path);
-    window.location = "/_utils"
+    setTimeout(function(){ // required sleep
+      window.location = "/_utils"
+    },100)
   })
 
   /*  External link handler
       Fallback to a new page load.
   */
   this.bind("lookupRoute", function(req) {
-    console.log("lookupRoute", req.path)
+    // console.log("lookupRoute", req.path, req.path.indexOf("/_utils"))
     // alert(req.path)
     if (req.path.indexOf("/_utils") !== 0) {
+      // console.log("delegateToServer")
+      window.location = req.path;
       req.delegateToServer()
     }
   })
