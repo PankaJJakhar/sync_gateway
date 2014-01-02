@@ -1,6 +1,6 @@
 var hostname = "http://localhost:4985/", db_name = "sync_gateway",
   assert = require("assert"),
-  SyncModel = require("./data"),
+  SyncModel = require("./syncModel"),
   sga = require("coax")(hostname)
 
 console.log("test our module loaded")
@@ -154,6 +154,7 @@ function testDeploySyncCode(){
 function newChangesShowUp(){
   var next = getNext(arguments);
   console.log("newChangesShowUp")
+  next()
 }
 
 

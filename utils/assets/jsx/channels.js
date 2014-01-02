@@ -159,7 +159,6 @@ window.RecentChannels = React.createClass({
   },
   render : function() {
     // console.log("render RecentChannels", this.state, this.props)
-
     var watch = this.props.watch || [],
       currentLoc = location.toString(),
       channelNames = this.state.channelNames,

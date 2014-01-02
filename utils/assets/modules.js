@@ -9,7 +9,8 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 */
 
 var events = require('events'),
-  coax = require("coax");
+  coax = require("coax"),
+  util = require("util");
 
 var dbStateSingletons = {};
 exports.SyncModelForDatabase = function(db) {
@@ -36,7 +37,7 @@ function SyncModel(db) {
 
   // pubic methods
   this.setSyncFunction = function(funCode) {
-    oldCode = previewFun && previewFun.code
+    var oldCode = previewFun && previewFun.code
     if (funCode == oldCode) {
       return;
     }
@@ -68,7 +69,7 @@ function SyncModel(db) {
       }
     }
     newConfig.sync = code;
-    client.del([""]/*[""] to force trailing slash*/,function(err, ok){
+    client.del([""]/*[""] to force trailing slash*/,function(err){
       if (err && err.constructor !== SyntaxError) {
         return done(err);
       }
@@ -104,13 +105,14 @@ function SyncModel(db) {
   this.randomAccessDocID = function() {
     var chs = this.channelNames()
     chs = shuffleArray(chs);
-    var ch;
-    while (ch = chs.pop()) {
-      var chInfo = this.channel(ch);
+    var ch = chs.pop();
+    while (ch) {
+      var chInfo = this.channel(ch)
       if (chInfo.access) {
         var ids = Object.keys(chInfo.access)
         return ids[Math.floor(Math.random()*ids.length)]
       }
+      ch = chs.pop()
     }
   }
   this.randomDocID = function(){
@@ -144,11 +146,12 @@ function SyncModel(db) {
     var access = {};
     for (var user in deployed.access) {
       var chans = Object.keys(deployed.access[user])
-      chans.forEach(function(ch){
+      for (var i = chans.length - 1; i >= 0; i--) {
+        var ch = chans[i]
         access[ch] = access[ch] || []
         access[ch].push(user)
         access[ch] = access[ch].sort()
-      })
+      }
     }
     return {
       access : access,
@@ -172,20 +175,6 @@ function SyncModel(db) {
       channels : preview.channels,
       reject : preview.reject
     };
-  };
-
-  function getDocAccessMap(done) {
-    var docAccessMap = {};
-    client.get(["_view", "access"], function(err, data) {
-      console.log("access", data)
-      data.rows.forEach(function(r) {
-        for (var ch in r.value) {
-          docAccessMap[ch] = docAccessMap[ch] || {}
-          docAccessMap[ch][r.id] = r.value[ch];
-        }
-      })
-      done(err, docAccessMap)
-    })
   }
 
   function runSyncFunction(channelSet, id, doc, seq) {
@@ -222,10 +211,10 @@ function SyncModel(db) {
     existing = existing || [];
     for (var i = existing.length - 1; i >= 0; i--) {
       keys[existing[i]] = true;
-    };
+    }
     for (i = more.length - 1; i >= 0; i--) {
       keys[more[i]] = true;
-    };
+    }
     return Object.keys(keys).sort()
   }
 
@@ -276,7 +265,7 @@ function SyncModel(db) {
   })
 }
 
-SyncModel.prototype.__proto__ = events.EventEmitter.prototype;
+util.inherits(SyncModel, events.EventEmitter);
 
 function shuffleArray(array) {
     for (var i = array.length - 1; i > 0; i--) {
@@ -289,7 +278,7 @@ function shuffleArray(array) {
 }
 
 var syncWrapper = function(newDoc, oldDoc, realUserCtx) {
-  syncCodeStringHere
+  //syncCodeStringHere
 
   function makeArray(maybeArray) {
     if (Array.isArray(maybeArray)) {
@@ -368,13 +357,13 @@ var syncWrapper = function(newDoc, oldDoc, realUserCtx) {
 
 function compileSyncFunction(syncCode) {
   var codeString = "var syncFun = ("+ syncCode+")",
-    wrappedCode = syncWrapper.replace("syncCodeStringHere", codeString),
+    wrappedCode = syncWrapper.replace("//syncCodeStringHere", codeString),
     evalString = "var compiledFunction = ("+ wrappedCode+")";
   eval(evalString);
   return compiledFunction;
 }
 
-},{"coax":"nf6DCT","events":10}],"syncModel":[function(require,module,exports){
+},{"coax":"nf6DCT","events":10,"util":11}],"syncModel":[function(require,module,exports){
 module.exports=require('f7r3xx');
 },{}],"nf6DCT":[function(require,module,exports){
 /*
