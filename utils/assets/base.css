@@ -211,6 +211,10 @@ li.isAccess {
   background: #fdf5cc;
 }
 
+li.hiddenAccess {
+  background: #fcccc1;
+}
+
 .UsersForDatabase, .RecentChannels, .ListDocs {
   width: 16em;
   float: left;

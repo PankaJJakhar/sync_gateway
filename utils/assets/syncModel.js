@@ -92,13 +92,24 @@ function SyncModel(db) {
     })
     for (var i = rs.length - 1; i >= 0; i--) {
       var docid = revs[rs[i]]
-      changes.push({id:docid, seq:parseInt(rs[i])})
+      changes.push({id:docid, seq:parseInt(rs[i]), isAccess : chan.access[docid]})
     }
     var result = {
       name : name,
       changes : changes
     }
-    if (Object.keys(chan.access).length) {result.access = chan.access}
+    var accessIds = Object.keys(chan.access);
+    if (accessIds.length) {
+      result.access = chan.access
+      result.hiddenAccessIds = [];
+      for (i = accessIds.length - 1; i >= 0; i--) {
+        console.log("accessIds", accessIds[i])
+        if (!docs[accessIds[i]]) {
+          console.log("hidden!", accessIds[i])
+          result.hiddenAccessIds.push(accessIds[i])
+        }
+      }
+    }
     return result
   }
   this.randomAccessDocID = function() {

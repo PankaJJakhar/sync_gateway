@@ -25,9 +25,6 @@ function hrefToggleWatchingChannel(db, chName, current) {
 }
 
 window.ChannelsWatchPage = React.createClass({
-  componentWillUnmount : function() {
-    console.log("ChannelsWatchPage componentWillUnmount")
-  },
   render : function(){
     var channels = this.props.watch;
     var db = this.props.db,
@@ -123,14 +120,21 @@ var ChannelChanges = React.createClass({
   render : function() {
     // console.log("render channelChanges", this.props.id)
     var channel = this.state.channel;
-    var db = this.state.db;
+    var db = this.state.db, hiddenAccess = <span></span>;
+    if (channel.hiddenAccessIds && channel.hiddenAccessIds.length > 0) {
+      hiddenAccess = <span><ul>{
+                channel.hiddenAccessIds.map(function(id){
+                  return <li className="isAccess">Hidden: <a href={dbLink(db, "documents/"+id)}>{id}</a></li>
+                })
+              }</ul></span>
+    }
     return (
       <div className="ChannelChanges">
       <a className="watched" href={dbLink(db, "channels/"+channel.name)}>{channel.name}</a>
+      {hiddenAccess}
     <ul>
       {channel.changes.map(function(ch){
-        var isAccess = channel.access && channel.access[ch.id] && "isAccess";
-        return <li key={channel.name+ch.id} className={isAccess}>{ch.seq} : <a href={dbLink(db, "documents/"+ch.id)}>{ch.id}</a></li>
+        return <li key={channel.name+ch.id} className={ch.isAccess && "isAccess"}>{ch.seq} : <a href={dbLink(db, "documents/"+ch.id)}>{ch.id}</a></li>
       })}
     </ul></div>
     );
